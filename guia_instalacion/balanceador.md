@@ -14,7 +14,7 @@ sudo nano /etc/netplan/00-installer-config.yaml
 Configurar:
 
 
-
+'''
 network:
   version: 2
   ethernets:
@@ -25,7 +25,7 @@ network:
       dhcp4: no
       addresses:
         - 10.10.10.30/24
-
+'''
 
 
 
