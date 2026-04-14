@@ -25,7 +25,7 @@ network:
       dhcp4: no
       addresses:
         - 10.10.10.30/24
-´´´
+```
 
 
 
