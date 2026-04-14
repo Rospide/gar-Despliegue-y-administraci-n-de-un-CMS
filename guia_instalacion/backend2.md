@@ -33,7 +33,7 @@ Dentro de la VM:
 
 sudo nano /etc/netplan/00-installer-config.yaml
 
-🔧 Configuración
+## 🔧 Configuración
 
 network:
   version: 2
@@ -46,7 +46,9 @@ network:
       addresses:
         - 10.10.10.21/24
 
-▶️ 4. Aplicar configuración
+        
+
+## ▶️ 4. Aplicar configuración
 
 sudo netplan apply
 
