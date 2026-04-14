@@ -14,7 +14,7 @@ sudo nano /etc/netplan/00-installer-config.yaml
 Configurar:
 
 
-'''
+'''bash
 network:
   version: 2
   ethernets:
