@@ -38,12 +38,7 @@ network:
   version: 2
   ethernets:
     enp0s3:
-      dhcp4: no
-      addresses:
-        - 192.168.100.11/24
-      gateway4: 192.168.100.1
-      nameservers:
-        addresses: [8.8.8.8, 8.8.4.4]
+      dhcp4: yes
 
     enp0s8:
       dhcp4: no
