@@ -39,17 +39,12 @@ network:
   version: 2
   ethernets:
     enp0s3:
-      dhcp4: no
-      addresses:
-        - 192.168.100.21/24
-      gateway4: 192.168.100.1
-      nameservers:
-        addresses: [8.8.8.8, 8.8.4.4]
+      dhcp4: yes
 
     enp0s8:
       dhcp4: no
       addresses:
-        - 10.0.0.21/24
+        - 10.10.10.21/24
 
 ▶️ 4. Aplicar configuración
 
@@ -62,7 +57,7 @@ ip a
 Debe aparecer:
 
 192.168.100.21
-10.0.0.21
+10.10.10.21
 
 
 🧪 6. Probar conexión
