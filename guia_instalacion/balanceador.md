@@ -52,7 +52,7 @@ Editar archivo:
 sudo nano /etc/nginx/sites-available/default
 
 Contenido:
-
+```yaml
 upstream backend_servers {
     server 10.10.10.20;
     server 10.10.10.21;
@@ -68,6 +68,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 }
+```
 ## 7. Verificación de configuración
 sudo nginx -t
 ## 8. Reinicio del servicio
