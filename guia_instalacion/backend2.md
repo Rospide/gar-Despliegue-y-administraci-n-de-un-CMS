@@ -34,7 +34,7 @@ Dentro de la VM:
 sudo nano /etc/netplan/00-installer-config.yaml
 
 ## 🔧 Configuración
-
+```yalm
 network:
   version: 2
   ethernets:
@@ -45,7 +45,7 @@ network:
       dhcp4: no
       addresses:
         - 10.10.10.21/24
-
+```
         
 
 ## ▶️ 4. Aplicar configuración
