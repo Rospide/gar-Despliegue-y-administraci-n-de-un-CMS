@@ -60,7 +60,25 @@ Debe aparecer:
 
 192.168.100.21
 10.10.10.21
+🌐 6. Instalar servidor web (NGINX)
 
+sudo apt update
+sudo apt install nginx -y
+
+📄 7. Crear página identificativa
+
+Esto es para poder comprobar el balanceo de carga:
+
+echo "SOY BACKEND1" | sudo tee /var/www/html/index.html
+
+🔄 8. Reiniciar servicio
+
+sudo systemctl restart nginx
+
+
+🧪 9. Comprobar funcionamiento
+
+curl localhost
 
 🧪 6. Probar conexión
 
