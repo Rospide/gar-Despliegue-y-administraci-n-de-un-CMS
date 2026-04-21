@@ -217,4 +217,28 @@ Resultado esperado en todos los nodos:
 SUCCESS
 "ping": "pong"
 
-Si aparece eso, significa que Ansible funciona correctamente en toda la infraestructura.
+Si aparece eso, significa que Ansible funciona correctamente en toda la infraestruct
+
+
+
+14. Playbook básico de prueba
+
+Crear un playbook para instalar Apache en los frontends:
+
+nano apache.yml
+
+Contenido:
+
+- hosts: frontends
+  become: yes
+  tasks:
+    - name: Instalar Apache
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+
+Ejecutar:
+
+ansible-playbook -i hosts.ini apache.yml --ask-become-pass
+
