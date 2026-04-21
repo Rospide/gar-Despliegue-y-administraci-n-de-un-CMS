@@ -1,4 +1,6 @@
 CLONAR IGUAL QUE LAS ANTERIORES LA MAQUINA
+
+
 elegir de politica de de direccion mac: generar nuevas direcciones...
 
 
