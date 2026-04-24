@@ -26,7 +26,7 @@ network:
     enp0s8:
       dhcp4: no
       addresses:
-        - 10.10.10.30/24
+        - 10.0.0.1/24
 ```
 
 
