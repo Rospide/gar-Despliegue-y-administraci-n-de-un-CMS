@@ -22,7 +22,7 @@ Configuración → Red
 
 ### Adaptador 2
 - Tipo: Red interna
-- Nombre: main ⚠️ (MUY IMPORTANTE)
+- Nombre: internal ⚠️ (MUY IMPORTANTE)
 
 ---
 
