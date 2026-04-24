@@ -6,7 +6,7 @@ elegir de politica de de direccion mac: generar nuevas direcciones...
 
 Adaptador 2 (RED INTERNA)
 Tipo: Red interna
-Nombre: internal
+Nombre: main
 ## 3. Configuración de red en Ubuntu
 
 Editar netplan:
