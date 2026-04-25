@@ -242,3 +242,11 @@ Ejecutar:
 
 ansible-playbook -i hosts.ini apache.yml --ask-become-pass
 
+
+
+15. activar forwarding (para el punete entre frontend y backend)
+ Entrar en:  sudo nano /etc/sysctl.conf
+Descomentar: net.ipv4.ip_forward=1
+Luego, aplica los cambios con: sudo netplan apply
+
+
