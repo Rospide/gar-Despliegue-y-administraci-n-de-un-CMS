@@ -18,11 +18,9 @@ Ir a:
 Configuración → Red
 
 ### Adaptador 1
-- Tipo: NAT
-
-### Adaptador 2
 - Tipo: Red interna
-- Nombre: internal ⚠️ (MUY IMPORTANTE)
+- Nombre: internal
+
 
 ---
 
@@ -39,12 +37,12 @@ network:
   version: 2
   ethernets:
     enp0s3:
-      dhcp4: yes
-
-    enp0s8:
-      dhcp4: no
       addresses:
         - 10.10.10.21/24
+      routes:
+        - to: 10.0.0.0/24
+          via: 10.10.10.10  
+
 ```
         
 
