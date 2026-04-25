@@ -93,6 +93,9 @@ network:
       dhcp4: no
       addresses:
         - 10.0.0.10/24
+      routes:
+        - to: 10.10.10.0/24
+          via: 10.0.0.20
 ```
 
 ---
