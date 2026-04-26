@@ -7,7 +7,7 @@ elegir de politica de de direccion mac: generar nuevas direcciones...
 Adaptador 2 (RED INTERNA)
 Tipo: Red interna
 Nombre: main
-## 3. Configuración de red en Ubuntu
+# 3. Configuración de red en Ubuntu
 
 Editar netplan:
 
@@ -38,16 +38,16 @@ sudo netplan apply
 Comprobar:
 
 ip a
-## 4. Comprobación de conectividad
+# 4. Comprobación de conectividad
 
 Verificar conexión con los backends:
 
 ping 10.10.10.20
 ping 10.10.10.21
-## 5. Instalación de Nginx
+# 5. Instalación de Nginx
 sudo apt update
 sudo apt install nginx -y
-## 6. Configuración del balanceador
+# 6. Configuración del balanceador
 
 Editar archivo:
 
@@ -71,22 +71,22 @@ server {
     }
 }
 ```
-## 7. Verificación de configuración
+# 7. Verificación de configuración
 sudo nginx -t
-## 8. Reinicio del servicio
+# 8. Reinicio del servicio
 sudo systemctl restart nginx
-## 9. Prueba de funcionamiento
+# 9. Prueba de funcionamiento
 curl http://localhost
 
 Debe alternar entre los servidores backend:
 
 SOY BACKEND1
 SOY BACKEND2
-## 10. Conclusión
+# 10. Conclusión
 
 El balanceador queda configurado como punto de entrada al sistema, permitiendo distribuir el tráfico entre los nodos backend de la red interna sin exponerlos directamente.
 
-## 11. Acceso al balanceador desde el host (Port Forwarding)
+# 11. Acceso al balanceador desde el host (Port Forwarding)
 
 Para poder acceder al balanceador desde el equipo anfitrión (host), es necesario configurar una redirección de puertos en VirtualBox.
 
@@ -107,3 +107,36 @@ Nombre: web
 Protocolo: TCP
 Puerto anfitrión: 8080
 Puerto invitado: 80
+
+
+
+# 12. Configuración de Seguridad y Firewall 
+
+Para garantizar que el **Balanceador** sea el único punto de entrada seguro desde internet y proteger el resto de la infraestructura, se ha configurado el firewall `UFW` (Uncomplicated Firewall) siguiendo una política de **mínimo privilegio**.
+
+
+Se han aplicado las siguientes reglas para cerrar cualquier acceso no autorizado fuera de la red:
+
+## 12.1. Política de denegación por defecto
+Bloqueamos cualquier conexión entrante que no esté explícitamente permitida por una regla específica.
+```bash
+sudo ufw default deny incoming
+```
+
+## 12.2. Apertura del servicio web (CMS)
+Permitimos el tráfico a través del puerto 80 para que los usuarios puedan acceder al servicio web expuesto por el balanceador.
+```bash
+sudo ufw allow 80/tcp
+```
+
+## 12.3. Acceso administrativo restringido (SSH)
+Por seguridad, el acceso por SSH al balanceador solo está permitido desde la IP del nodo Jumpstart (10.0.0.20). Cualquier otro intento de conexión desde internet o desde otros nodos será descartado.
+```bash
+sudo ufw allow from 10.0.0.20 to any port 22 proto tcp
+```
+
+## 12.4. Activación del Firewall
+Una vez definidas las reglas anteriores, procedemos a activar el sistema de filtrado para que entren en vigor.
+```bash
+sudo ufw enable
+```
