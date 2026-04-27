@@ -17,11 +17,13 @@ Ir a configuración y luego a red
 - Tipo: **Red interna**
 - Nombre: **internal**
 
-## 🥉 3. Configurar IP fija
+## 3. Configurar IP fija
 
 Dentro de la VM:
 
-*sudo nano /etc/netplan/00-installer-config.yaml*
+```bash
+sudo nano /etc/netplan/00-installer-config.yaml
+```
 
 Configuración:
 ```yalm
@@ -38,42 +40,55 @@ network:
 
 ## 4. Aplicar configuración
 
-*sudo netplan apply*
+```bash
+sudo netplan apply
+```
 
 ## 5. Comprobar IP
 
-*ip a*
+```bash
+ip a
+```
 
 Debe aparecer: 
-
+```bash
 192.168.100.21
 10.10.10.21
+```
 
 ## 6. Instalar servidor web (NGINX)
+```bash
+sudo apt update
+```
 
-*sudo apt update
-sudo apt install nginx -y*
+```bash
+sudo apt install nginx -y
+```
 
 ## 7. Crear página identificativa
 
 Esto es para poder comprobar el balanceo de carga:
 
-*echo "SOY BACKEND1" | sudo tee /var/www/html/index.html*
+```bash
+echo "SOY BACKEND1" | sudo tee /var/www/html/index.html
+```
 
 ## 8. Reiniciar servicio
 
-*sudo systemctl restart nginx*
-
+```bash
+sudo systemctl restart nginx
+```    
 
 ## 9. Comprobar funcionamiento
 
-*curl localhost*
-
+```bash
+curl localhost
+```    
 ## 10. Probar conexión
 
 Desde frontend1:
-
-*ping 10.0.0.21*
-
+```bash
+ping 10.0.0.21
+```    
 Si responde, significa que todo funciona bien
 
