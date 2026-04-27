@@ -1,230 +1,112 @@
-# 🚀 GUÍA COMPLETA – CREACIÓN DE MÁQUINA BASE (Ubuntu Server)
+# GUIA DE INSTALACIÓN: CREACIÓN DE LA INFRAESTRUCTURA BASE 
 
-## 🧠 OBJETIVO
+Vamos a crear una máquina base en VirtualBox que servirá como plantilla para clonar el resto de máquinas (frontends, backends, jumpstart y balenceador).
 
-Crear una máquina base en VirtualBox que servirá como plantilla para clonar el resto de máquinas (frontend, backend, etc.).
+## 1. CREAR MÁQUINA VIRTUAL
 
----
+En VirtualBox hacemos click en **Nueva**
 
-# 🥇 1. CREAR MÁQUINA VIRTUAL
-
-En VirtualBox:
-
-1. Click en **Nueva**
-
-### 🔹 Configuración:
+### Configuración:
 
 * Nombre: `base-ubuntu`
 * Tipo: Linux
 * Versión: Ubuntu (64-bit)
 
----
-
-# 🥈 2. RECURSOS
+## 2. RECURSOS
 
 * RAM: 2 GB (2048 MB)
 * CPU: 2 (opcional pero recomendado)
 
----
-
-# 🥉 3. DISCO DURO
+## 3. DISCO DURO
 
 * Tipo: VDI
 * Reserva: Dinámica
 * Tamaño: 20 GB
 
----
+## 4. CARGAR ISO
 
-# 🧪 4. CARGAR ISO
+En configuración y luego alamcenamiento, añades la ISO de Ubuntu Server: `ubuntu-20.04-live-server-amd64.iso` y arrancamos la máquina
 
-1. Configuración → **Almacenamiento**
-2. Añadir ISO de Ubuntu Server:
-   👉 `ubuntu-20.04-live-server-amd64.iso`
 
----
+## 5. INSTALACIÓN DE UBUNTU
 
-# 🟢 5. ARRANCAR LA MÁQUINA
+Seguimos el instalador:
+1. Eliges el idioma y teclado que quieras.
+2. La red la cogemos automatica (DHCP)
+3. Usar todo el disco (instalación guiada)
+5. Creas el usuario con un usuario y contraseña
+6. Activas **Install OpenSSH server** y permites la contraseña
+7. No seleccionas ningun snaps
 
-👉 Iniciar la VM
+Por ultimo, reinicias cuando lo pida
 
----
 
-# ⚙️ 6. INSTALACIÓN DE UBUNTU
 
-Seguir el instalador:
+### NOTA 
 
-### 🔹 Idioma:
+Cuando aparezca:  “Remove installation medium”
 
-* English (o el que prefieras)
+En VirtualBox le das a dispositivos, unidades ópticas, quitas ISO y luego Enter
 
-### 🔹 Teclado:
+## 6. INICIAR SESIÓN Y ACTUALIZAR EL SISTEMA
 
-* Spanish
-
----
-
-## 🌐 RED
-
-👉 Automática (DHCP)
-
----
-
-## 💾 DISCO
-
-👉 Usar todo el disco (instalación guiada)
-
----
-
-## 👤 USUARIO
-
-Ejemplo:
-
-* Nombre: Alejandro
-* Usuario: `alejandroro`
-* Contraseña: (la que elijas)
-
----
-
-## 🔐 SSH (MUY IMPORTANTE)
-
-👉 Activar:
-
-✔ **Install OpenSSH server**
-
-👉 Permitir contraseña ✔
-
----
-
-## 📦 Snaps
-
-👉 NO seleccionar nada
-
----
-
-# ⏳ 7. FINALIZAR INSTALACIÓN
-
-👉 Esperar a que termine
-👉 Reiniciar cuando lo pida
-
----
-
-# ⚠️ IMPORTANTE
-
-Cuando aparezca:
-
-👉 “Remove installation medium”
-
-En VirtualBox:
-
-* Dispositivos → Unidades ópticas
-* Quitar ISO
-
-👉 Luego Enter
-
----
-
-# 🖥️ 8. INICIAR SESIÓN
-
-Entrar con:
-
-```bash
-usuario: alejandroro
-contraseña: (la elegida)
-```
-
----
-
-# 🔄 9. ACTUALIZAR SISTEMA
+Entramos con el usuario y contraseña elegida anteriormente y actualizamos el sistema:
 
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
 
----
-
-# 🔐 10. COMPROBAR SSH
+## 7. COMPROBAR SSH
 
 ```bash
 sudo systemctl status ssh
 ```
 
-👉 Debe aparecer:
+debe aparecer:
 
 ```bash
 active (running)
 ```
 
----
+## 8. COMPROBAR IP
 
-# 🌐 11. COMPROBAR IP
-
+Comprobamos la ip con:
 ```bash
 hostname -I
 ```
 
-👉 Ejemplo:
+## 9. CONFIGURAR PORT FORWARDING (VirtualBox)
 
-```bash
-10.0.2.15
-```
-
----
-
-# 🔧 12. CONFIGURAR PORT FORWARDING (VirtualBox)
-
-Apagar la VM:
+Apagamos la maquina virtual:
 
 ```bash
 sudo poweroff
 ```
 
----
-
-## En VirtualBox:
-
-Configuración → Red → NAT → Avanzado → Reenvío de puertos
-
----
-
-## Añadir regla:
-
+Y en VirtualBox le damos a configuración, red, NAT y en la opción avanzado le damos a reenvío de puertos. Añadimos la regla:
+```bash
 * Nombre: ssh
 * Protocolo: TCP
 * Puerto anfitrión: 2222
 * Puerto invitado: 22
+```
 
----
-
-# 🚀 13. CONECTARSE POR SSH
+## 10. CONEXIÓN POR SSH
 
 Desde el PC:
 
 ```bash
-ssh alejandroro@localhost -p 2222
+ssh usuario@localhost -p 2222
 ```
 
----
 
-# 🎯 RESULTADO FINAL
 
-La máquina base queda:
-
-✔ Ubuntu instalado
-✔ SSH activo
-✔ Acceso remoto configurado
-✔ Lista para clonar
-
----
-
-# 🚀 SIGUIENTE PASO
-
-👉 Clonar esta máquina para crear:
-
+## 11. SIGUIENTE PASO
 * frontend1
 * frontend2
 * backend1
 * backend2
 * balanceador
-* monitor
+* jumpstart
 
----
+
