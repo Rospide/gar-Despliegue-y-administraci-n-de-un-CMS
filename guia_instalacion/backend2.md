@@ -11,7 +11,7 @@ Desde VirtualBox:
 
 ##  2. Configuración de red (VirtualBox)
 
-Ir a configuración y luegoa red
+Ir a configuración y luego a red
 
 ### Adaptador 1
 - Tipo: **Red interna**
