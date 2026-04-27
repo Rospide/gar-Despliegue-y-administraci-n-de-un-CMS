@@ -1,75 +1,48 @@
-k# 🚀 GUÍA COMPLETA – CREACIÓN DE frontend1 (VERSIÓN FINAL)
+# Instalación y configuración del frontend2
 
-## 🧠 OBJETIVO
+## 1. Clonar máquina base
 
-Crear una máquina virtual `frontend1` a partir de una plantilla base, configurarla con IP fija y dejarla lista para comunicarse con otras máquinas.
+Desde VirtualBox:
 
----
+- Click derecho en `base-ubuntu` → Clonar
+- Nombre: `frontend2`
+- Tipo: **Clon completo**
+- Reinitializar MAC address
 
-# 🥇 1. CLONAR LA MÁQUINA BASE
+## 2. Configuración de red (VirtualBox)
 
-En VirtualBox:
+Ir a configuración y luego a red
 
-1. Click derecho sobre la VM base (ej: `base-ubuntu`)
-2. Seleccionar → **Clonar**
+### Adaptador 1
 
-### 🔹 Opciones:
+- Conectado a: **NAT**
 
-* Nombre: `frontend1`
-* Tipo: **Clon completo**
-* ✔ Reinitializar MAC address
+### Adaptador 2
 
-👉 Finalizar clonación
+- Tipo: **Red interna**
+- Nombre: **main**
 
----
+## 3. ARRANCAR LA MÁQUINA
 
-# 🥈 2. CONFIGURAR RED EN VIRTUALBOX
-
-Ir a:
-
-👉 Configuración → Red
+Iniciar `frontend2` desde VirtualBox
 
 ---
 
-## 🔹 Adaptador 1
-
-* Conectado a: **NAT**
-  👉 (para tener internet)
-
----
-
-## 🔹 Adaptador 2
-
-* ✔ Habilitar
-* Conectado a: **Red interna**
-* Nombre: `main` ⚠️ (MUY IMPORTANTE)
-
-👉 Este nombre debe ser EXACTAMENTE igual en todas las máquinas
-
----
-
-# 🥉 3. ARRANCAR LA MÁQUINA
-
-Iniciar `frontend1` desde VirtualBox
-
----
-
-# 🧪 4. COMPROBAR INTERFACES
+## 4. COMPROBAR INTERFACES
 
 En la terminal:
 
 ```bash
 ip a
 ```
-
-👉 Deben aparecer:
+ 
+Deben aparecer:
 
 * `enp0s3` (NAT)
 * `enp0s8` (red interna)
 
----
 
-# ✍️ 5. CONFIGURAR IP FIJA
+## 5. CONFIGURAR IP FIJA
 
 Editar archivo de red:
 
@@ -77,9 +50,7 @@ Editar archivo de red:
 sudo nano /etc/netplan/00-installer-config.yaml
 ```
 
----
-
-## 🔥 CONFIGURACIÓN COMPLETA
+CONFIGURACIÓN:
 
 ```yaml
 network:
@@ -98,60 +69,29 @@ network:
           via: 10.0.0.20
 ```
 
----
 
-# 💾 6. GUARDAR Y SALIR
 
-En nano:
-
-* `CTRL + O` → Enter
-* `CTRL + X`
-
----
-
-# ▶️ 7. APLICAR CONFIGURACIÓN
+## 7. APLICAR CONFIGURACIÓN
 
 ```bash
 sudo netplan apply
 ```
 
----
 
-# ✅ 8. COMPROBAR RESULTADO
+## 8. COMPROBAR RESULTADO
 
 ```bash
 ip a
 ```
 
-👉 Debe aparecer:
+Debe aparecer:
 
 * `192.168.100.10` → red NAT (internet)
 * `10.0.0.11` → red interna (comunicación entre máquinas)
 
----
 
-# 🎯 RESULTADO FINAL
 
-La máquina `frontend1` queda:
-
-✔ Con internet
-✔ Con IP fija
-✔ Conectada a red interna (`main`)
-✔ Preparada para comunicarse con otras VMs
-✔ Lista para arquitectura distribuida
-
----
-
-# ⚠️ ERRORES COMUNES
-
-❌ Usar nombres distintos en la red interna (`main` debe ser igual en todas)
-❌ Fallos de indentación en YAML
-❌ Escribir mal `/24`
-❌ No ejecutar `netplan apply`
-
----
-
-# 🚀 SIGUIENTE PASO
+## 9. SIGUIENTE PASO
 
 Crear más máquinas:
 
@@ -159,7 +99,5 @@ Crear más máquinas:
 * backend1
 * backend2
 * balanceador
-* monitor
-
-👉 Todas clonadas desde la misma base
+* jumpstart
 
