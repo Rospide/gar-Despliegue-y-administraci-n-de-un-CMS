@@ -50,7 +50,7 @@ Editar archivo de red:
 sudo nano /etc/netplan/00-installer-config.yaml
 ```
 
-CONFIGURACIÓN:
+Configuración:
 
 ```yaml
 network:
