@@ -5,7 +5,7 @@
 Desde VirtualBox:
 
 - Click derecho en `base-ubuntu` → Clonar
-- Nombre: `backend1`
+- Nombre: `frontend1`
 - Tipo: **Clon completo**
 - Reinitializar MAC address
 
