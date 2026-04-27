@@ -95,4 +95,12 @@ ping 10.0.0.20
 
 si va bien deberia de hacer ping
 
+## 11. SIGUIENTE PASO
+
+Crear las máquinas:
+
+* backend2
+* balanceador
+* jumpstart
+
 
