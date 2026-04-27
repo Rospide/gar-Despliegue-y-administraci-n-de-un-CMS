@@ -92,3 +92,10 @@ ping 10.0.0.21
 ```    
 Si responde, significa que todo funciona bien
 
+## 11. SIGUIENTE PASO
+
+Crear las máquinas:
+
+* balanceador
+* jumpstart
+
