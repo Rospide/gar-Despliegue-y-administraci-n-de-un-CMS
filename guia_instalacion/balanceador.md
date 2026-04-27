@@ -169,3 +169,10 @@ Una vez definidas las reglas anteriores, procedemos a activar el sistema de filt
 ```bash
 sudo ufw enable
 ```
+
+## 11. SIGUIENTE PASO
+
+Crear las máquinas:
+
+* jumpstart
+
