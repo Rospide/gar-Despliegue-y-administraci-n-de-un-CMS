@@ -21,7 +21,9 @@ Ir a configuración y luego a red
 
 Dentro de la VM:
 
-*sudo nano /etc/netplan/00-installer-config.yaml*
+```bash
+sudo nano /etc/netplan/00-installer-config.yaml
+```
 
 Configuración:
 ```yaml
@@ -34,47 +36,62 @@ network:
       routes:
         - to: 10.0.0.0/24
           via: 10.10.10.10 
-
 ```
 
 ## 4. Aplicar configuración
 
-*sudo netplan apply*
+```bash
+sudo netplan apply
+```
 
  ## 5. Comprobar IP
 
-al poner el comando: *ip a*
+al poner el comando:
+```bash
+ip a
+```
 
 Debe aparecer:
-
+```bash
 192.168.100.20
 
 10.10.10.20
+```
 
 ## 6. Instalar servidor web (NGINX)
+```bash
+sudo apt update
+```
 
-*sudo apt update
-sudo apt install nginx -y*
-
+```bash
+sudo apt install nginx -y
+```
 ## 7. Crear página identificativa
 
 Esto es para poder comprobar el balanceo de carga:
 
-*echo "SOY BACKEND1" | sudo tee /var/www/html/index.html*
+```bash
+echo "SOY BACKEND1" | sudo tee /var/www/html/index.html
+```
 
 ## 8. Reiniciar servicio
 
-*sudo systemctl restart nginx*
-
+```bash
+sudo systemctl restart nginx
+```
 
 ## 9. Comprobar funcionamiento
 
-*curl localhost*
-
+```bash
+curl localhost
+```
 
 ## 10. Probar conexión
 
-Desde frontend1: *ping 10.0.0.20* 
+Desde frontend1:
+```bash
+ping 10.0.0.20
+```
 
 si va bien deberia de hacer ping
 
