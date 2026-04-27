@@ -60,15 +60,14 @@ network:
           via: 10.0.0.20
 ```
 
-
-## 4. APLICAR CONFIGURACIÓN
+## 5. APLICAR CONFIGURACIÓN
 
 ```bash
 sudo netplan apply
 ```
 
 
-## 5. COMPROBAR RESULTADO
+## 6. COMPROBAR RESULTADO
 
 ```bash
 ip a
@@ -82,7 +81,7 @@ Debe aparecer:
 
 
 
-## 6. SIGUIENTE PASO
+## 7. SIGUIENTE PASO
 
 Crear las máquinas:
 
