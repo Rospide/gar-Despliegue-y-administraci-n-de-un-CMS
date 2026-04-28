@@ -185,3 +185,91 @@ Cuando exista `jumpstart`, probar también:
 ```bash
 ping -c 4 10.0.0.20
 ```
+
+## 10. Instalar Apache, PHP y WordPress
+
+Una vez configurada la red del frontend, instalar el software del servidor web:
+
+```bash
+sudo apt update
+sudo apt install apache2 php libapache2-mod-php php-mysql mysql-client -y
+```
+
+## 11. Descargar WordPress
+
+```bash
+cd /tmp
+wget https://wordpress.org/latest.tar.gz
+tar -xvzf latest.tar.gz
+```
+
+## 12. Copiar WordPress al directorio web de Apache
+
+```bash
+sudo rm -rf /var/www/html/*
+sudo cp -r wordpress/* /var/www/html/
+```
+
+## 13. Ajustar permisos
+
+```bash
+sudo chown -R www-data:www-data /var/www/html
+sudo chmod -R 755 /var/www/html
+```
+
+## 14. Configurar WordPress
+
+```bash
+cd /var/www/html
+sudo cp wp-config-sample.php wp-config.php
+sudo nano wp-config.php
+```
+
+Cambiar estas líneas:
+
+```php
+define('DB_NAME', 'wordpress');
+define('DB_USER', 'wpuser');
+define('DB_PASSWORD', 'password');
+define('DB_HOST', '10.10.10.20');
+```
+
+## 15. Reiniciar Apache
+
+```bash
+sudo systemctl restart apache2
+sudo systemctl status apache2
+```
+
+Apache debe aparecer como:
+
+```bash
+active (running)
+```
+
+## 16. Comprobar que WordPress responde
+
+```bash
+curl http://localhost | head
+```
+
+Posibles resultados:
+
+- si devuelve HTML de WordPress o una página de error de base de datos, Apache y PHP están funcionando
+- si la petición se queda bloqueada, normalmente significa que WordPress está esperando la conexión con la base de datos
+
+## 17. Comprobar conectividad con la base de datos
+
+Antes de que WordPress funcione del todo, el frontend debe poder llegar a la base de datos:
+
+```bash
+ping -c 4 10.0.0.20
+ping -c 4 10.10.10.20
+```
+
+Importante:
+
+- `10.0.0.20` es `jumpstart`
+- `10.10.10.20` es el backend donde está la base de datos
+
+Si `jumpstart` todavía no está creada o configurada, WordPress no podrá terminar de cargar aunque Apache funcione correctamente.
