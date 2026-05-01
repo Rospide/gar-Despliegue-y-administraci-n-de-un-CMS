@@ -1,4 +1,4 @@
-# Guía de Instalación: Cluster de Base de Datos (Backend1 y Backend2)
+# Cluster de Base de Datos (Backend1 y Backend2)
 
 Esta guía detalla el proceso para desplegar el cluster de MariaDB Galera utilizando Ansible. Es fundamental que las conexiones entre **backend1**, **backend2** y **jumpstart** sean correctas antes de empezar.
 
