@@ -68,6 +68,8 @@ Bash
 ansible-playbook preparar_jumpstart.yml -K
 ```
 
+<img width="1331" height="740" alt="imagen" src="https://github.com/user-attachments/assets/2d273300-b19c-4507-81fb-c2bd4a7e0900" />
+
 
     Nota: La opción -K te pedirá la contraseña de sudo (Become password).
 
