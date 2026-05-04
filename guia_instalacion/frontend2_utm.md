@@ -1,28 +1,28 @@
-# Instalación y configuración de `frontend2`
+# Instalación y configuración de `frontend2` en UTM
 
 ## 1. Clonar la máquina base
 
-- Click derecho en `base-ubuntu`
-- Seleccionar `Clonar`
-- Nombre: `frontend2`
-- Tipo: **Clon completo**
-- Reinitializar la MAC si lo pide
+Desde UTM:
 
-## 2. Configuración de red
+- Seleccionar `base-ubuntu`
+- Clonar la máquina
+- Nombre: `frontend2`
+
+## 2. Configuración de red en UTM
 
 La máquina debe tener dos adaptadores:
 
-- uno con salida a Internet
-- otro para la red interna `main`
-
 ### Adaptador 1
 
-- Conectado a: **NAT**
+- Tipo: **Red compartida**
+- Uso: salida a Internet
 
 ### Adaptador 2
 
-- Conectado a: **Red interna**
-- Nombre: `main`
+- Tipo: **Sólo host**
+- Uso: red `main`
+
+Importante: este segundo adaptador debe estar en la misma red `Sólo host` que `frontend1` y `jumpstart`.
 
 ## 3. Arrancar la máquina y comprobar interfaces
 
@@ -32,14 +32,16 @@ Arrancar `frontend2` y ejecutar:
 ip a
 ```
 
-Deben aparecer normalmente:
+En UTM normalmente aparecerán:
 
-- `enp0s3` -> NAT
-- `enp0s8` -> red interna
+- `enp0s1` -> red compartida / NAT
+- `enp0s2` -> red `main`
+
+Importante: usa los nombres de interfaz que te aparezcan realmente a ti.
 
 ## 4. Configurar red y hostname con script
 
-La configuración dentro de Ubuntu no se hace a mano, sino con el script del repositorio:
+La configuración dentro de Ubuntu se hace con el script del repositorio:
 
 ```bash
 automatizacion/scripts/configurar_frontend.sh
@@ -67,9 +69,9 @@ El script hace automáticamente:
 network:
   version: 2
   ethernets:
-    enp0s3:
+    <interfaz-externa>:
       dhcp4: true
-    enp0s8:
+    <interfaz-interna>:
       dhcp4: false
       addresses:
         - 10.0.0.11/24
@@ -89,18 +91,12 @@ hostname
 
 Debe aparecer:
 
-- una IP de Internet en la interfaz NAT
+- una IP tipo `192.168.2.X` en la interfaz externa
 - `10.0.0.11/24` en la interfaz interna
 - la ruta:
 
 ```bash
 10.10.10.0/24 via 10.0.0.20 dev <interfaz-interna>
-```
-
-En VirtualBox, normalmente será:
-
-```bash
-10.10.10.0/24 via 10.0.0.20 dev enp0s8
 ```
 
 ## 7. Comprobar conectividad con `frontend1`
@@ -111,11 +107,11 @@ Con las dos máquinas encendidas:
 ping -c 4 10.0.0.10
 ```
 
-Si aparece `Destination Host Unreachable`, normalmente significa que:
+Si no responde, revisar:
 
-- `frontend1` está apagada
-- `frontend1` no tiene levantada la interfaz interna
-- el segundo adaptador no está en la misma red interna
+- que `frontend1` esté encendida
+- que la interfaz interna esté levantada
+- que el segundo adaptador de ambas esté en la misma red `Sólo host`
 
 ## 8. Despliegue del software
 
@@ -134,4 +130,4 @@ el despliegue se realiza de forma automatizada con el playbook:
 automatizacion/playbooks/frontend_wordpress.yml
 ```
 
-La ejecución se documenta en la guía de `jumpstart`.
+La ejecución se documenta en la guía de `jumpstart_utm.md`.

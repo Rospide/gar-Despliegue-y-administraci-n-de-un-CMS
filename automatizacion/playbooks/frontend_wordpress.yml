@@ -1,0 +1,67 @@
+- hosts: frontends:frontend
+  become: yes
+  vars:
+    wordpress_db_name: wordpress
+    wordpress_db_user: wpuser
+    wordpress_db_password: password
+    wordpress_db_host: 10.10.10.20
+    wordpress_archive: /tmp/latest.tar.gz
+    wordpress_extract_dir: /tmp/wordpress
+    wordpress_web_root: /var/www/html
+
+  tasks:
+    - name: Instalar Apache, PHP y cliente MySQL
+      apt:
+        name:
+          - apache2
+          - php
+          - libapache2-mod-php
+          - php-mysql
+          - mysql-client
+        state: present
+        update_cache: yes
+
+    - name: Descargar WordPress
+      get_url:
+        url: https://wordpress.org/latest.tar.gz
+        dest: "{{ wordpress_archive }}"
+        mode: "0644"
+
+    - name: Descomprimir WordPress
+      unarchive:
+        src: "{{ wordpress_archive }}"
+        dest: /tmp
+        remote_src: yes
+
+    - name: Asegurar directorio web
+      file:
+        path: "{{ wordpress_web_root }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"
+
+    - name: Copiar WordPress al directorio web
+      command: cp -a {{ wordpress_extract_dir }}/. {{ wordpress_web_root }}/
+
+    - name: Generar wp-config.php
+      template:
+        src: ../templates/wp-config.php.j2
+        dest: "{{ wordpress_web_root }}/wp-config.php"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+
+    - name: Ajustar permisos del directorio web
+      file:
+        path: "{{ wordpress_web_root }}"
+        owner: www-data
+        group: www-data
+        mode: "0755"
+        recurse: yes
+
+    - name: Reiniciar Apache
+      systemd:
+        name: apache2
+        state: restarted
+        enabled: yes

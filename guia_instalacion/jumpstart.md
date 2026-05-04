@@ -219,32 +219,48 @@ Si aparece eso, significa que Ansible funciona correctamente en toda la infraest
 
 
 
-## 12. PLAYBOOK BÁSICO DE PRUEBA
+## 12. DESPLEGAR `frontend1` Y `frontend2` CON ANSIBLE
 
-Creamos un playbook para instalar Apache en los frontends:
-
-```bash
-nano apache.yml
-```
-
-Contenido:
+La instalación de Apache, PHP y WordPress en los frontends se hace desde `jumpstart` con el playbook del repositorio:
 
 ```bash
-- hosts: frontends
-  become: yes
-  tasks:
-    - name: Instalar Apache
-      apt:
-        name: apache2
-        state: present
-        update_cache: yes
+automatizacion/playbooks/frontend_wordpress.yml
 ```
 
-Ejecutamos con:
+Antes de ejecutarlo, conviene comprobar que `jumpstart` llega a los frontends.
+
+Se puede usar:
+
+- el inventario que ya tengáis preparado
+- o el ejemplo del repositorio en `automatizacion/hosts.ini`
+
+Comprobación:
 
 ```bash
-ansible-playbook -i hosts.ini apache.yml --ask-become-pass
+ansible 'frontends:frontend' -i automatizacion/hosts.ini -m ping
 ```
+
+Ejecutar el despliegue:
+
+```bash
+ansible-playbook -i automatizacion/hosts.ini automatizacion/playbooks/frontend_wordpress.yml --ask-become-pass
+```
+
+El playbook realiza automáticamente estas tareas en `frontend1` y `frontend2`:
+
+- instalar `apache2`, `php`, `php-mysql` y `mysql-client`
+- descargar y copiar WordPress en `/var/www/html`
+- generar `wp-config.php`
+- configurar la base de datos para usar `10.10.10.20`
+- reiniciar Apache
+
+Si el playbook termina bien, se puede comprobar desde cada frontend:
+
+```bash
+curl http://localhost | head
+```
+
+Si aparece un error de base de datos o la página no termina de cargar, normalmente significa que aún falta configurar `jumpstart`, el backend MySQL o ambos.
 
 
 ## 13. ACTIVAR FORWARDING (PUENTE ENTRE FRONTEND Y BACKEND)
@@ -262,5 +278,3 @@ Luego, aplicamos los cambios con:
 ```bash
 sudo netplan apply
 ```
-
-
