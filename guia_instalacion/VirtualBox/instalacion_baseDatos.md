@@ -46,6 +46,8 @@ Comprueba que dentro tienes estos dos archivos:
 
 ## Instalación de Ansible (Solo en Jumpstart)
 
+Comprobar que estáis fuera del tbworkers para realizar lo que viene a continuación. 
+
 Ansible no viene instalado por defecto en Ubuntu. Debes instalarlo **únicamente en la máquina Jumpstart**, ya que es desde donde controlaremos a los backends.
 
 Ejecuta estos comandos en tu Jumpstart:
