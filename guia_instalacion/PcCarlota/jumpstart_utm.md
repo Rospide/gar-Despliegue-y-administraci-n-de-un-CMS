@@ -53,14 +53,14 @@ Importante: usa en el fichero de red los nombres que te aparezcan realmente a ti
 La configuración dentro de Ubuntu no se hace a mano, sino con el script del repositorio:
 
 ```bash
-automatizacion/scripts/configurar_jumpstart.sh
+automatizacion/PcCarlota/scripts/configurar_jumpstart.sh
 ```
 
 Ejecutar:
 
 ```bash
-chmod +x automatizacion/scripts/configurar_jumpstart.sh
-sudo ./automatizacion/scripts/configurar_jumpstart.sh jumpstart
+chmod +x automatizacion/PcCarlota/scripts/configurar_jumpstart.sh
+sudo ./automatizacion/PcCarlota/scripts/configurar_jumpstart.sh jumpstart
 ```
 
 El script hace automáticamente:
@@ -69,8 +69,8 @@ El script hace automáticamente:
 - detectar la interfaz de la red `main`
 - detectar la interfaz de la red `internal`
 - escribir el fichero correcto de `netplan`
-- configurar `10.0.0.20/24` para `main`
-- configurar `10.10.10.10/24` para `internal`
+- configurar `192.168.50.10/24` para `main`
+- configurar `10.10.10.1/24` para `internal`
 - cambiar el hostname a `jumpstart`
 
 ## 5. Qué configura el script
@@ -84,11 +84,11 @@ network:
     <interfaz-main>:
       dhcp4: false
       addresses:
-        - 10.0.0.20/24
+        - 192.168.50.10/24
     <interfaz-internal>:
       dhcp4: false
       addresses:
-        - 10.10.10.10/24
+        - 10.10.10.1/24
 ```
 
 ## 6. Comprobar el resultado
@@ -102,8 +102,8 @@ hostname
 Debe aparecer:
 
 - una IP tipo `192.168.2.X` en `enp0s1`
-- `10.0.0.20/24` en `enp0s2`
-- `10.10.10.10/24` en `enp0s3`
+- `192.168.50.10/24` en `enp0s2`
+- `10.10.10.1/24` en `enp0s3`
 
 ## 7. Comprobar conectividad
 
@@ -117,16 +117,16 @@ ping -c 4 google.com
 Probar máquinas de la red `main`:
 
 ```bash
-ping -c 4 10.0.0.10
-ping -c 4 10.0.0.11
+ping -c 4 192.168.50.30
+ping -c 4 192.168.50.31
 ```
 
 Probar máquinas de la red `internal`:
 
 ```bash
+ping -c 4 10.10.10.10
+ping -c 4 10.10.10.11
 ping -c 4 10.10.10.20
-ping -c 4 10.10.10.21
-ping -c 4 10.10.10.30
 ```
 
 Si alguna no responde, revisar:
@@ -158,11 +158,11 @@ Se crearán:
 Desde `jumpstart`, ejecutar:
 
 ```bash
-ssh-copy-id usuario@10.0.0.10
-ssh-copy-id usuario@10.0.0.11
-ssh-copy-id usuario@10.10.10.20
-ssh-copy-id usuario@10.10.10.21
-ssh-copy-id usuario@10.10.10.30
+ssh-copy-id usuario@192.168.50.30
+ssh-copy-id usuario@192.168.50.31
+ssh-copy-id usuario@10.10.10.10
+ssh-copy-id usuario@10.10.10.11
+ssh-copy-id usuario@192.168.50.20
 ```
 
 La primera vez aparecerá:
@@ -178,11 +178,11 @@ Contestar `yes` y escribir la contraseña de la máquina destino.
 Desde `jumpstart`, comprobar:
 
 ```bash
-ssh usuario@10.0.0.10
-ssh usuario@10.0.0.11
-ssh usuario@10.10.10.20
-ssh usuario@10.10.10.21
-ssh usuario@10.10.10.30
+ssh usuario@192.168.50.30
+ssh usuario@192.168.50.31
+ssh usuario@10.10.10.10
+ssh usuario@10.10.10.11
+ssh usuario@192.168.50.20
 ```
 
 Para salir:
@@ -201,24 +201,24 @@ ansible --version
 
 ## 12. Preparar inventario
 
-Puedes usar el inventario de ejemplo del repositorio:
+Usar el inventario común del repositorio:
 
 ```bash
-automatizacion/hosts.ini
+inventario/hosts.ini
 ```
 
-Antes de usarlo, cambia:
+Ahora mismo el inventario del grupo usa:
 
 ```bash
-ansible_user=TU_USUARIO
+ansible_user=alejandroro
 ```
 
-por el usuario real de tus máquinas.
+No lo cambies si tus compañeros han acordado usar ese usuario.
 
 ## 13. Comprobar que Ansible llega a los nodos
 
 ```bash
-ansible all -i automatizacion/hosts.ini -m ping
+ansible all -i inventario/hosts.ini -m ping
 ```
 
 El resultado esperado es:
@@ -233,7 +233,7 @@ SUCCESS
 Desde `jumpstart`, ejecutar:
 
 ```bash
-ansible-playbook -i automatizacion/hosts.ini automatizacion/playbooks/frontend_wordpress.yml --ask-become-pass
+ansible-playbook -i inventario/hosts.ini automatizacion/PcCarlota/playbooks/frontend_wordpress.yml --ask-become-pass
 ```
 
 Este playbook instala automáticamente en los frontends:
@@ -277,8 +277,8 @@ Debe devolver:
 Desde `frontend1` o `frontend2`, cuando `jumpstart` y los backends estén listos:
 
 ```bash
-ping -c 4 10.0.0.20
-ping -c 4 10.10.10.20
+ping -c 4 192.168.50.10
+ping -c 4 10.10.10.10
 ```
 
 Si WordPress no termina de cargar pero Apache sí responde, normalmente significa que aún falta la base de datos o la conectividad con la red `internal`.

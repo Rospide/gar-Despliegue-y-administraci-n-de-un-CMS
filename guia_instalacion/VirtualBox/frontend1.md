@@ -1,10 +1,10 @@
-# Instalación y configuración de `frontend2`
+# Instalación y configuración de `frontend1`
 
 ## 1. Clonar la máquina base
 
 - Click derecho en `base-ubuntu`
 - Seleccionar `Clonar`
-- Nombre: `frontend2`
+- Nombre: `frontend1`
 - Tipo: **Clon completo**
 - Reinitializar la MAC si lo pide
 
@@ -26,7 +26,7 @@ La máquina debe tener dos adaptadores:
 
 ## 3. Arrancar la máquina y comprobar interfaces
 
-Arrancar `frontend2` y ejecutar:
+Arrancar `frontend1` y ejecutar:
 
 ```bash
 ip a
@@ -42,14 +42,14 @@ Deben aparecer normalmente:
 La configuración dentro de Ubuntu no se hace a mano, sino con el script del repositorio:
 
 ```bash
-automatizacion/scripts/configurar_frontend.sh
+automatizacion/VirtualBox/scripts/configurar_frontend.sh
 ```
 
 Ejecutar:
 
 ```bash
-chmod +x automatizacion/scripts/configurar_frontend.sh
-sudo ./automatizacion/scripts/configurar_frontend.sh frontend2 10.0.0.11
+chmod +x automatizacion/VirtualBox/scripts/configurar_frontend.sh
+sudo ./automatizacion/VirtualBox/scripts/configurar_frontend.sh frontend1 10.0.0.10
 ```
 
 El script hace automáticamente:
@@ -57,9 +57,9 @@ El script hace automáticamente:
 - detectar la interfaz con salida a Internet
 - detectar la interfaz interna
 - escribir el fichero correcto de `netplan`
-- configurar la IP `10.0.0.11/24`
+- configurar la IP `10.0.0.10/24`
 - añadir la ruta hacia `10.10.10.0/24` vía `10.0.0.20`
-- cambiar el hostname a `frontend2`
+- cambiar el hostname a `frontend1`
 
 ## 5. Qué configura el script
 
@@ -72,7 +72,7 @@ network:
     enp0s8:
       dhcp4: false
       addresses:
-        - 10.0.0.11/24
+        - 10.0.0.10/24
       routes:
         - to: 10.10.10.0/24
           via: 10.0.0.20
@@ -90,7 +90,7 @@ hostname
 Debe aparecer:
 
 - una IP de Internet en la interfaz NAT
-- `10.0.0.11/24` en la interfaz interna
+- `10.0.0.10/24` en la interfaz interna
 - la ruta:
 
 ```bash
@@ -103,23 +103,23 @@ En VirtualBox, normalmente será:
 10.10.10.0/24 via 10.0.0.20 dev enp0s8
 ```
 
-## 7. Comprobar conectividad con `frontend1`
+## 7. Comprobar conectividad con `frontend2`
 
 Con las dos máquinas encendidas:
 
 ```bash
-ping -c 4 10.0.0.10
+ping -c 4 10.0.0.11
 ```
 
-Si aparece `Destination Host Unreachable`, normalmente significa que:
+Si no responde, revisar:
 
-- `frontend1` está apagada
-- `frontend1` no tiene levantada la interfaz interna
-- el segundo adaptador no está en la misma red interna
+- que `frontend1` y `frontend2` estén encendidas
+- que el segundo adaptador de ambas esté en la misma red interna
+- que las IPs configuradas sean correctas
 
 ## 8. Despliegue del software
 
-La instalación de Apache, PHP y WordPress no se hace manualmente dentro de `frontend2`.
+La instalación de Apache, PHP y WordPress no se hace manualmente dentro de `frontend1`.
 
 Una vez que:
 
@@ -131,7 +131,7 @@ Una vez que:
 el despliegue se realiza de forma automatizada con el playbook:
 
 ```bash
-automatizacion/playbooks/frontend_wordpress.yml
+automatizacion/VirtualBox/playbooks/frontend_wordpress.yml
 ```
 
 La ejecución se documenta en la guía de `jumpstart`.

@@ -1,0 +1,45 @@
+---
+- name: Preparar jumpstart para isntalacion offline
+  hosts: localhost
+  connection: local
+  become: yes
+  tasks:
+
+    - name: Instalar sshpass para permitir el uso de las contraseñas
+      apt:
+        name: sshpass
+        state: present
+        update_cache: yes
+
+    - name: Crear carpeta para paquetes MariaDB
+      file: 
+         path: "~/mariadb_offline"
+         state: directory
+
+    - name: Descargar paquetes de MariaDB y dependencias
+      shell: |
+         cd ~/mariadb_offline
+         apt-get update
+         apt-get download mariadb-server mariadb-client galera-3 socat libmariadb3 libaio1 libdbd-mysql-perl libdbi-perl libterm-readkey-perl
+   
+      args:   
+        creates: "~/mariadb_offline/mariadb-server*.deb"
+
+    - name: Asegurar que las plantillas existen
+      file:
+        path: "~/template"
+        state: directory
+    - name: Crear la plantilla Jinja2 de Galera
+      copy:
+        dest: "~/template/60-galera.cnf.j2"
+        content: | 
+          [galera]
+           wsrep_on                           = ON
+           wsrep_cluster_name                 = "galera_cluster_proyecto"
+           wsrep_provider                     = /usr/lib/galera/libgalera_smm.so
+           wsrep_cluster_address              = "gcomm://10.10.10.20,10.10.10.21"
+           binlog_format                      = ROW
+           default_storage_engine             = InnoDB
+           innodb_autoinc_lock_mode           = 2
+           wsrep_node_address                 = "{% raw %}{{ hostvars[inventory_hostname]['ansible_host']}}{% endraw %}"
+           wsrep_node_name                    = "{% raw %}{{ ansible_hostname }}{% endraw %}" 

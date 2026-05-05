@@ -1,0 +1,54 @@
+---
+- name: Preparar jumpstart para instalacion offline en UTM
+  hosts: localhost
+  connection: local
+  become: yes
+  vars:
+    mariadb_repo_dir: "{{ lookup('env', 'HOME') }}/mariadb_offline"
+    galera_template_dir: "{{ lookup('env', 'HOME') }}/template"
+  tasks:
+
+    - name: Instalar sshpass para permitir el uso de las contraseñas
+      apt:
+        name: sshpass
+        state: present
+        update_cache: yes
+
+    - name: Crear carpeta para paquetes MariaDB
+      file: 
+         path: "{{ mariadb_repo_dir }}"
+         state: directory
+
+    - name: Descargar paquetes de MariaDB y dependencias
+      shell: |
+         cd "{{ mariadb_repo_dir }}"
+         apt-get update
+         if apt-cache show galera-4 >/dev/null 2>&1; then
+           GALERA_PACKAGE=galera-4
+         else
+           GALERA_PACKAGE=galera-3
+         fi
+         apt-get download mariadb-server mariadb-client "$GALERA_PACKAGE" socat libmariadb3 libaio1 libdbd-mysql-perl libdbi-perl libterm-readkey-perl
+   
+      args:   
+        creates: "{{ mariadb_repo_dir }}/mariadb-server*.deb"
+
+    - name: Asegurar que las plantillas existen
+      file:
+        path: "{{ galera_template_dir }}"
+        state: directory
+
+    - name: Crear la plantilla Jinja2 de Galera
+      copy:
+        dest: "{{ galera_template_dir }}/60-galera.cnf.j2"
+        content: | 
+          [galera]
+           wsrep_on                           = ON
+           wsrep_cluster_name                 = "galera_cluster_proyecto"
+           wsrep_provider                     = /usr/lib/galera/libgalera_smm.so
+           wsrep_cluster_address              = "{% raw %}gcomm://{% for host in groups['backends'] | default(groups['backend']) %}{{ hostvars[host]['ansible_host'] | default(host) }}{% if not loop.last %},{% endif %}{% endfor %}{% endraw %}"
+           binlog_format                      = ROW
+           default_storage_engine             = InnoDB
+           innodb_autoinc_lock_mode           = 2
+           wsrep_node_address                 = "{% raw %}{{ hostvars[inventory_hostname]['ansible_host'] | default(inventory_hostname) }}{% endraw %}"
+           wsrep_node_name                    = "{% raw %}{{ ansible_hostname }}{% endraw %}" 

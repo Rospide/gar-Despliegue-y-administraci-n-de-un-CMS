@@ -1,0 +1,66 @@
+---
+- name: Instalacion de  MariaDB Galera Offline
+  hosts: backends
+  become: yes
+  tasks:
+    - name: 1. Crear directorio temporal en backends
+      file:
+        path: /tmp/mariadb_repo
+        state: directory
+
+    - name: 2. Copiar paquetes .deb desde el jumpstart
+      copy:
+        src: ~/mariadb_offline/
+        dest: /tmp/mariadb_repo/
+
+    - name: 3. Instalar paquetes .deb (Sin Internet)
+      shell: |
+        dpkg -i /tmp/mariadb_repo/*.deb
+      ignore_errors: yes
+      
+    - name: 4. Arreglar dependencias y configurar dpkg
+      shell: |
+       dpkg --configure -a
+       apt-get install -y -f
+
+    - name: 4.5 Abrir puertos de Galera en el Firewall (UFW)
+      shell: "ufw allow 3306/tcp && ufw allow 4567/tcp && ufw allow 4568/tcp && ufw allow 4444/tcp && ufw --force enable"
+      ignore_errors: yes 
+
+    - name: 5. Aplicar la plantilla de Galera
+      template:
+       src: ~/template/60-galera.cnf.j2
+       dest: /etc/mysql/mariadb.conf.d/60-galera.cnf
+
+    - name: 6. Configurar acceso externo (0.0.0.0)
+      lineinfile:
+        path: /etc/mysql/mariadb.conf.d/50-server.cnf
+        regexp: '^bind-address'
+        line: 'bind-address = 0.0.0.0'
+
+    - name: 7. Asegurar que MariaDB esté preparado antes de empezar el cluster
+      shell: |
+        systemctl stop mariadb || true
+        killall -9 mysqld || true
+        if [ -f /var/lib/mysql/grastate.dat ]; then
+          sed -i 's/safe_to_bootstrap: 0/safe_to_bootstrap: 1/' /var/lib/mysql/grastate.dat
+        fi
+      ignore_errors: yes
+
+    - name: 8. BOOTSTRAP - Arrancar el Cluster por primera vez (solo backend1)
+      command: galera_new_cluster
+      when: inventory_hostname == "backend1"
+      
+    - name: 9. UNIR NODOS - Arrancar MariaDB en el resto de nodos
+      service:
+       name: mariadb
+       state: started
+      when: inventory_hostname == "backend2"
+ 
+    - name: 10. Crear DB y Usuario (Solo en backend1 y se replicara al 2)
+      shell: |
+       mysql -e "CREATE DATABASE IF NOT EXISTS wordpress_db;"
+       mysql -e "CREATE USER IF NOT EXISTS 'wordpress_user'@'%'IDENTIFIED BY 'wordpress_pass';"
+       mysql -e "GRANT ALL PRIVILEGES ON wordpress_db.* TO 'wordpress_user'@'%';"
+       mysql -e "FLUSH PRIVILEGES;"
+      when: inventory_hostname == "backend1"

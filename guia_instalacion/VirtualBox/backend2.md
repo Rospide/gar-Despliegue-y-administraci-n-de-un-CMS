@@ -1,15 +1,15 @@
-# Instalación y configuración de backend1
+# Instalación y configuración de backend2
 
 ## 1. Clonar máquina base
 
 Desde VirtualBox:
 
 - Click derecho en `base-ubuntu` → Clonar
-- Nombre: `backend1`
+- Nombre: `backend2`
 - Tipo: **Clon completo**
 - Reinitializar MAC address
 
-## 2. Configuración de red (VirtualBox)
+##  2. Configuración de red (VirtualBox)
 
 Ir a configuración y luego a red
 
@@ -26,17 +26,17 @@ sudo nano /etc/netplan/00-installer-config.yaml
 ```
 
 Configuración:
-```yaml
+```yalm
 network:
   version: 2
   ethernets:
     enp0s3:
       addresses:
-        - 10.10.10.20/24
+        - 10.10.10.21/24
       routes:
         - to: 10.0.0.0/24
-          via: 10.10.10.10 
-```
+          via: 10.10.10.10  
+```      
 
 ## 4. Aplicar configuración
 
@@ -44,18 +44,16 @@ network:
 sudo netplan apply
 ```
 
- ## 5. Comprobar IP
+## 5. Comprobar IP
 
-al poner el comando:
 ```bash
 ip a
 ```
 
-Debe aparecer:
+Debe aparecer: 
 ```bash
-192.168.100.20
-
-10.10.10.20
+192.168.100.21
+10.10.10.21
 ```
 
 ## 6. Instalar servidor web (NGINX)
@@ -66,6 +64,7 @@ sudo apt update
 ```bash
 sudo apt install nginx -y
 ```
+
 ## 7. Crear página identificativa
 
 Esto es para poder comprobar el balanceo de carga:
@@ -78,29 +77,24 @@ echo "SOY BACKEND1" | sudo tee /var/www/html/index.html
 
 ```bash
 sudo systemctl restart nginx
-```
+```    
 
 ## 9. Comprobar funcionamiento
 
 ```bash
 curl localhost
-```
-
+```    
 ## 10. Probar conexión
 
 Desde frontend1:
 ```bash
-ping 10.0.0.20
-```
-
-si va bien deberia de hacer ping
+ping 10.0.0.21
+```    
+Si responde, significa que todo funciona bien
 
 ## 11. SIGUIENTE PASO
 
 Crear las máquinas:
 
-* backend2
 * balanceador
 * jumpstart
-
-

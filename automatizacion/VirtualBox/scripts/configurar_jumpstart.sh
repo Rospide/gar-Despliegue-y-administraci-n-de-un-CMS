@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-if [[ $# -gt 1 ]]; then
-  echo "Uso: sudo ./configurar_jumpstart.sh [hostname]"
+if [[ $# -gt 4 ]]; then
+  echo "Uso: sudo ./configurar_jumpstart.sh [hostname] [iface-nat] [iface-main] [iface-internal]"
   echo "Ejemplo: sudo ./configurar_jumpstart.sh jumpstart"
   exit 1
 fi
@@ -14,6 +14,9 @@ if [[ "${EUID}" -ne 0 ]]; then
 fi
 
 HOSTNAME_VALUE="${1:-jumpstart}"
+NAT_IFACE="${2:-}"
+MAIN_IFACE="${3:-}"
+INTERNAL_IFACE="${4:-}"
 MAIN_IP="10.0.0.20/24"
 INTERNAL_IP="10.10.10.10/24"
 
@@ -49,26 +52,26 @@ detect_interfaces() {
     exit 1
   fi
 
-  NAT_IFACE="$(ip route show default 2>/dev/null | awk '/default/ {print $5; exit}' || true)"
   if [[ -z "${NAT_IFACE}" ]]; then
-    NAT_IFACE="${IFACES[0]}"
+    NAT_IFACE="$(ip route show default 2>/dev/null | awk '/default/ {print $5; exit}' || true)"
+  fi
+  if [[ -z "${NAT_IFACE}" ]]; then
+    NAT_IFACE="enp0s3"
+  fi
+  if [[ -z "${MAIN_IFACE}" ]]; then
+    MAIN_IFACE="enp0s8"
+  fi
+  if [[ -z "${INTERNAL_IFACE}" ]]; then
+    INTERNAL_IFACE="enp0s9"
   fi
 
-  local remaining=()
-  local iface
-  for iface in "${IFACES[@]}"; do
-    if [[ "${iface}" != "${NAT_IFACE}" ]]; then
-      remaining+=("${iface}")
+  for iface in "${NAT_IFACE}" "${MAIN_IFACE}" "${INTERNAL_IFACE}"; do
+    if [[ ! -d "/sys/class/net/${iface}" ]]; then
+      echo "No se ha encontrado la interfaz ${iface}." >&2
+      echo "Comprueba los nombres con: ip a" >&2
+      exit 1
     fi
   done
-
-  if [[ "${#remaining[@]}" -lt 2 ]]; then
-    echo "No se han podido detectar las interfaces main e internal." >&2
-    exit 1
-  fi
-
-  MAIN_IFACE="${remaining[0]}"
-  INTERNAL_IFACE="${remaining[1]}"
 }
 
 write_netplan() {
@@ -106,9 +109,6 @@ print_summary() {
 }
 
 NETPLAN_FILE="$(find_netplan_file)"
-NAT_IFACE=""
-MAIN_IFACE=""
-INTERNAL_IFACE=""
 
 detect_interfaces
 write_netplan "${NETPLAN_FILE}"

@@ -1,4 +1,4 @@
-# Instalación y configuración de `frontend1` en UTM
+# Instalación y configuración de `frontend2` en UTM
 
 ## 1. Clonar la máquina base
 
@@ -6,7 +6,7 @@ Desde UTM:
 
 - Seleccionar `base-ubuntu`
 - Clonar la máquina
-- Nombre: `frontend1`
+- Nombre: `frontend2`
 
 ## 2. Configuración de red en UTM
 
@@ -22,11 +22,11 @@ La máquina debe tener dos adaptadores:
 - Tipo: **Sólo host**
 - Uso: red `main`
 
-Importante: este segundo adaptador debe estar en la misma red `Sólo host` que `frontend2` y `jumpstart`.
+Importante: este segundo adaptador debe estar en la misma red `Sólo host` que `frontend1` y `jumpstart`.
 
 ## 3. Arrancar la máquina y comprobar interfaces
 
-Arrancar `frontend1` y ejecutar:
+Arrancar `frontend2` y ejecutar:
 
 ```bash
 ip a
@@ -44,14 +44,14 @@ Importante: usa los nombres de interfaz que te aparezcan realmente a ti.
 La configuración dentro de Ubuntu se hace con el script del repositorio:
 
 ```bash
-automatizacion/scripts/configurar_frontend.sh
+automatizacion/PcCarlota/scripts/configurar_frontend.sh
 ```
 
 Ejecutar:
 
 ```bash
-chmod +x automatizacion/scripts/configurar_frontend.sh
-sudo ./automatizacion/scripts/configurar_frontend.sh frontend1 10.0.0.10
+chmod +x automatizacion/PcCarlota/scripts/configurar_frontend.sh
+sudo ./automatizacion/PcCarlota/scripts/configurar_frontend.sh frontend2 192.168.50.31
 ```
 
 El script hace automáticamente:
@@ -59,9 +59,9 @@ El script hace automáticamente:
 - detectar la interfaz con salida a Internet
 - detectar la interfaz interna
 - escribir el fichero correcto de `netplan`
-- configurar la IP `10.0.0.10/24`
-- añadir la ruta hacia `10.10.10.0/24` vía `10.0.0.20`
-- cambiar el hostname a `frontend1`
+- configurar la IP `192.168.50.31/24`
+- añadir la ruta hacia `10.10.10.0/24` vía `192.168.50.10`
+- cambiar el hostname a `frontend2`
 
 ## 5. Qué configura el script
 
@@ -74,10 +74,10 @@ network:
     <interfaz-interna>:
       dhcp4: false
       addresses:
-        - 10.0.0.10/24
+        - 192.168.50.31/24
       routes:
         - to: 10.10.10.0/24
-          via: 10.0.0.20
+          via: 192.168.50.10
           on-link: true
 ```
 
@@ -92,30 +92,30 @@ hostname
 Debe aparecer:
 
 - una IP tipo `192.168.2.X` en la interfaz externa
-- `10.0.0.10/24` en la interfaz interna
+- `192.168.50.31/24` en la interfaz interna
 - la ruta:
 
 ```bash
-10.10.10.0/24 via 10.0.0.20 dev <interfaz-interna>
+10.10.10.0/24 via 192.168.50.10 dev <interfaz-interna>
 ```
 
-## 7. Comprobar conectividad con `frontend2`
+## 7. Comprobar conectividad con `frontend1`
 
 Con las dos máquinas encendidas:
 
 ```bash
-ping -c 4 10.0.0.11
+ping -c 4 192.168.50.30
 ```
 
 Si no responde, revisar:
 
-- que `frontend1` y `frontend2` estén encendidas
+- que `frontend1` esté encendida
+- que la interfaz interna esté levantada
 - que el segundo adaptador de ambas esté en la misma red `Sólo host`
-- que las IPs configuradas sean correctas
 
 ## 8. Despliegue del software
 
-La instalación de Apache, PHP y WordPress no se hace manualmente dentro de `frontend1`.
+La instalación de Apache, PHP y WordPress no se hace manualmente dentro de `frontend2`.
 
 Una vez que:
 
@@ -127,7 +127,7 @@ Una vez que:
 el despliegue se realiza de forma automatizada con el playbook:
 
 ```bash
-automatizacion/playbooks/frontend_wordpress.yml
+automatizacion/PcCarlota/playbooks/frontend_wordpress.yml
 ```
 
 La ejecución se documenta en la guía de `jumpstart_utm.md`.

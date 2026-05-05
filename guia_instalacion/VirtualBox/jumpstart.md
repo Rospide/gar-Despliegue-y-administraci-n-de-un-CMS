@@ -43,16 +43,22 @@ debe aparecer:
 - enp0s8: main
 - enp0s9: internal
 
-## 4. CONFIGURAR RED 
+## 4. CONFIGURAR RED CON SCRIPT
 
-Editar el fichero de configuración:
+La configuración dentro de Ubuntu se hace con el script del repositorio:
 
 ```bash
-sudo nano /etc/netplan/00-installer-config.yaml
+automatizacion/VirtualBox/scripts/configurar_jumpstart.sh
 ```
 
+Ejecutar:
 
-Configuración:
+```bash
+chmod +x automatizacion/VirtualBox/scripts/configurar_jumpstart.sh
+sudo ./automatizacion/VirtualBox/scripts/configurar_jumpstart.sh jumpstart
+```
+
+El script configura normalmente:
 
 ```yaml
 network:
@@ -72,15 +78,12 @@ network:
         - 10.10.10.10/24
 ```
 
-## 5. GUARDAR CONFIGURACIÓN
-```bash
-sudo netplan apply
-```
+## 5. COMPROBAR CONFIGURACIÓN
 
-Comprobamos:
 ```bash
 ip a
 ip route
+hostname
 ```
 
 Debe aparecer:
@@ -224,26 +227,25 @@ Si aparece eso, significa que Ansible funciona correctamente en toda la infraest
 La instalación de Apache, PHP y WordPress en los frontends se hace desde `jumpstart` con el playbook del repositorio:
 
 ```bash
-automatizacion/playbooks/frontend_wordpress.yml
+automatizacion/VirtualBox/playbooks/frontend_wordpress.yml
 ```
 
 Antes de ejecutarlo, conviene comprobar que `jumpstart` llega a los frontends.
 
 Se puede usar:
 
-- el inventario que ya tengáis preparado
-- o el ejemplo del repositorio en `automatizacion/hosts.ini`
+- el inventario común del repositorio en `inventario/hosts.ini`
 
 Comprobación:
 
 ```bash
-ansible 'frontends:frontend' -i automatizacion/hosts.ini -m ping
+ansible 'frontends:frontend' -i inventario/hosts.ini -m ping
 ```
 
 Ejecutar el despliegue:
 
 ```bash
-ansible-playbook -i automatizacion/hosts.ini automatizacion/playbooks/frontend_wordpress.yml --ask-become-pass
+ansible-playbook -i inventario/hosts.ini automatizacion/VirtualBox/playbooks/frontend_wordpress.yml --ask-become-pass
 ```
 
 El playbook realiza automáticamente estas tareas en `frontend1` y `frontend2`:

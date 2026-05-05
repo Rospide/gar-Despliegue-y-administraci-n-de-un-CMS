@@ -175,4 +175,3 @@ sudo ufw enable
 Crear las máquinas:
 
 * jumpstart
-
