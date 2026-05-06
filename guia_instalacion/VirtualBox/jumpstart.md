@@ -144,7 +144,7 @@ ssh-copy-id usuario@10.0.0.10
 ssh-copy-id usuario@10.0.0.11
 ssh-copy-id usuario@10.10.10.20
 ssh-copy-id usuario@10.10.10.21
-ssh-copy-id usuario@10.10.10.30
+ssh-copy-id usuario@10.0.0.1
 ```
 
 La primera vez aparecerá: "Are you sure you want to continue connecting (yes/no/[fingerprint])?" hay que contestar "yes" y poner la contraseña de la máquina
@@ -162,7 +162,7 @@ ssh usuario@10.0.0.10
 ssh usuario@10.0.0.11
 ssh usuario@10.10.10.20
 ssh usuario@10.10.10.21
-ssh usuario@10.10.10.30
+ssh usuario@10.0.0.1
 ```
 
 Para salir de cada sesión:
@@ -198,10 +198,10 @@ Contenido:
 10.10.10.21
 
 [balanceador]
-10.10.10.30
+10.0.0.01
 
 [all:vars]
-ansible_user=alejandroro
+ansible_user=nombreUsuario
 ansible_ssh_private_key_file=~/.ssh/id_ed25519
 ```
 
