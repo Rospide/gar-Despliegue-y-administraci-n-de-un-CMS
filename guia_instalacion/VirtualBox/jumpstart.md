@@ -106,6 +106,9 @@ ping -c 4 10.0.0.10
 ```bash
 ping -c 4 10.0.0.11
 ```
+```bash
+ping -c 4 10.0.0.1
+```
 
 Probar máquinas de la red internal:
 ```bash
@@ -116,9 +119,6 @@ ping -c 4 10.10.10.20
 ping -c 4 10.10.10.21
 ```
 
-```bash
-ping -c 4 10.10.10.30
-```
 
 Si alguna no responde, hay que revisar la configuración de red en VirtualBox y su netplan.
 
