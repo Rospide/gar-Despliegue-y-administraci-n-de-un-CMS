@@ -20,7 +20,8 @@ backend1 ansible_host=10.10.10.20
 backend2 ansible_host=10.10.10.21
 ```
 
-<img width="895" height="419" alt="imagen" src="https://github.com/user-attachments/assets/0ef4dac0-4286-4018-8d11-7e20250082f2" />
+<img width="896" height="468" alt="imagen" src="https://github.com/user-attachments/assets/72072daf-b7b5-4bee-9e09-d73f73021a35" />
+
 
 ---
 
