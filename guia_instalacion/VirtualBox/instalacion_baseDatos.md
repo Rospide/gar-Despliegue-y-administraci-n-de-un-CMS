@@ -115,7 +115,3 @@ Si todo está bien, deberías ver un valor de 2, tanto como en el backend1 y bac
 > **Cualquier duda o error, contactad conmigo.** 
 >
 > Cuando realicé las pruebas el despliegue me salio de manera correcta; sin embargo, debido a la gran cantidad de comandos, es posible que algún detalle se haya escapado en la automatización final.
-
----
-
-<img width="512" height="512" alt="imagen" src="https://github.com/user-attachments/assets/01a47f2d-1be3-43f8-aa30-a797a8bcd439" />
