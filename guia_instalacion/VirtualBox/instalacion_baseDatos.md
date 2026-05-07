@@ -48,6 +48,9 @@ Comprueba que dentro tienes estos dos archivos:
 ## Llevar los ejecutables desde servidor a máquina local
 
 Desde la maquina virtual local, con el * es para llevar al local todo lo que tienes dentro del servidor: scp -r tuUsuario@tbworkers4.esi.uclm.es:~/* .
+
+POr ejemplo:
+
 ```
 scp -r sandraro@tbworkers4.esi.uclm.es:~/* .
 ```
