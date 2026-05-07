@@ -45,6 +45,13 @@ Comprueba que dentro tienes estos dos archivos:
 
 <img width="667" height="75" alt="imagen" src="https://github.com/user-attachments/assets/9e24aac4-0a89-45f6-8dc6-9b8bb584ecb4" />
 
+## Llevar los ejecutables desde servidor a máquina local
+
+Desde la maquina virtual local, con el * es para llevar al local todo lo que tienes dentro del servidor: scp -r tuUsuario@tbworkers4.esi.uclm.es:~/* .
+```
+scp -r sandraro@tbworkers4.esi.uclm.es:~/* .
+```
+
 ## Instalación de Ansible (Solo en Jumpstart)
 
 Comprobar que estáis fuera del tbworkers para realizar lo que viene a continuación. 
