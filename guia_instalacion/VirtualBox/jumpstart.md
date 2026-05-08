@@ -92,7 +92,7 @@ Debe aparecer:
 - 10.0.0.20 en main
 - 10.10.10.10 en internal
 
-## 5. Instalacion de keepalived
+## 6. Instalacion de keepalived
 
 ```bash
 sudo apt update
@@ -102,7 +102,7 @@ sudo apt update
 sudo apt install keepalived
 ```
 
-## 6. Archivo de configuración de keepalived
+## 7. Archivo de configuración de keepalived
 Hay que editar este archivo
 
 ```bash
@@ -163,7 +163,7 @@ ip a
 
 
 
-## 7. COMPROBAR CONECTIVIDAD
+## 8. COMPROBAR CONECTIVIDAD
 Probamos Internet:
 ```bash
 ping -c 4 8.8.8.8
@@ -193,7 +193,7 @@ ping -c 4 10.10.10.21
 
 Si alguna no responde, hay que revisar la configuración de red en VirtualBox y su netplan.
 
-## 8. GENERAR CLAVE SSH 
+## 9. GENERAR CLAVE SSH 
 
 Generaramos la clave SSH con:
 ```bash
@@ -207,7 +207,7 @@ Esto creará:
 ~/.ssh/id_ed25519
 ~/.ssh/id_ed25519.pub
 ```
-## 9. COPIAR LA CLAVE SSH AL RESTO DE MÁQUINAS
+## 10. COPIAR LA CLAVE SSH AL RESTO DE MÁQUINAS
 
 Desde jumpstart, ejecutar:
 ```bash
@@ -225,7 +225,7 @@ Si todo va bien, aparecerá:
 Number of key(s) added: 1
 ```
 
-## 10. PROBAR SSH SIN CONTRASEÑA
+## 11. PROBAR SSH SIN CONTRASEÑA
 
 Desde jumpstart, comprobar que ya entra sin pedir contraseña:
 ```bash
@@ -241,7 +241,7 @@ Para salir de cada sesión:
 exit
 ```
 
-## 11. INSTAÑAR ANSIBLE 
+## 12. INSTAÑAR ANSIBLE 
 ```bash
 sudo apt update
 sudo apt install ansible -y
@@ -251,7 +251,7 @@ Comprobar versión:
 ```bash
 ansible --version
 ```
-## 12. CREAR INVENTARIO hosts.ini 
+## 13. CREAR INVENTARIO hosts.ini 
 
 Creamos el fichero:
 ```bash
@@ -293,7 +293,7 @@ Si aparece eso, significa que Ansible funciona correctamente en toda la infraest
 
 
 
-## 13. DESPLEGAR `frontend1` Y `frontend2` CON ANSIBLE
+## 14. DESPLEGAR `frontend1` Y `frontend2` CON ANSIBLE
 
 La instalación de Apache, PHP y WordPress en los frontends se hace desde `jumpstart` con el playbook del repositorio:
 
@@ -336,7 +336,7 @@ curl http://localhost | head
 Si aparece un error de base de datos o la página no termina de cargar, normalmente significa que aún falta configurar `jumpstart`, el backend MySQL o ambos.
 
 
-## 14. ACTIVAR FORWARDING (PUENTE ENTRE FRONTEND Y BACKEND)
+## 15. ACTIVAR FORWARDING (PUENTE ENTRE FRONTEND Y BACKEND)
 Entramos en:  
 ```bash
 sudo nano /etc/sysctl.conf
