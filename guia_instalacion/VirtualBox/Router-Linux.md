@@ -117,4 +117,18 @@ sudo systemctl enable keepalived
 Este ultimo comando, debe poner 'Active (running)' para que este activo: 
 <img width="918" height="198" alt="imagen" src="https://github.com/user-attachments/assets/0e041d9e-edc0-4682-a656-2102932d948a" />
 
+## 7. Activar forwarding
+Entramos en:  
+```bash
+sudo nano /etc/sysctl.conf
+```
 
+y descomentamos la linea:
+```bash
+net.ipv4.ip_forward=1
+```
+
+Luego, aplicamos los cambios con: 
+```bash
+sudo netplan apply
+```
