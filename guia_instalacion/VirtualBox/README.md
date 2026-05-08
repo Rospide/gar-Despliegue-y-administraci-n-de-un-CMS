@@ -11,6 +11,7 @@ Usa estas guías si estás siguiendo la instalación con VirtualBox:
 - `backend2.md`
 - `balanceador.md`
 - `jumpstart.md`
+- `Router-Linux.md`
 - `instalacion_baseDatos.md`
 
 Estas guías usan conceptos propios de VirtualBox, como `NAT`, `Red interna` y la redirección de puertos desde la configuración de VirtualBox.
