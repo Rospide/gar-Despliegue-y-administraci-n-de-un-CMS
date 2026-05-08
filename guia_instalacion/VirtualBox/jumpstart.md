@@ -92,7 +92,78 @@ Debe aparecer:
 - 10.0.0.20 en main
 - 10.10.10.10 en internal
 
-## 6. COMPROBAR CONECTIVIDAD
+## 5. Instalacion de keepalived
+
+```bash
+sudo apt update
+```
+
+```bash
+sudo apt install keepalived
+```
+
+## 6. Archivo de configuración de keepalived
+Hay que editar este archivo
+
+```bash
+sudo nano /etc/keepalived/keepalived.conf
+```
+
+Configuración:
+```yaml
+vrrp_instance VI_MAIN {
+    state MASTER
+    interface enp0s8
+    virtual_router_id 51
+    priority 100
+    virtual_ipaddress {
+         10.0.0.100
+    }
+}
+
+vrrp_instance VI_INTERNAL{
+    state MASTER
+    interface enp0s9
+    virtual_router_id 52
+    priority 100
+    virtual_ipaddress {
+         10.10.10.100
+    }
+}
+```
+
+A continuación, escribir estos comandos para quitar el bloqueo, habiliarlo, arrancarlo y verificarlo:
+
+```bash
+sudo systemctl unmask keepalived
+```
+
+```bash
+sudo systemctl enable keepalived
+```
+
+```bash
+sudo systemctl start keepalived
+```
+
+```bash
+sudo systemctl enable keepalived
+```
+
+Este ultimo comando, debe poner 'Active (running)' para que este activo: 
+<img width="918" height="198" alt="imagen" src="https://github.com/user-attachments/assets/0e041d9e-edc0-4682-a656-2102932d948a" /
+
+Poner este comamdo y comprobar que sale en enp0s8 '10.0.0.100' y enp0s9 '10.10.10.100'
+
+```bash
+ip a
+```
+
+<img width="875" height="548" alt="imagen" src="https://github.com/user-attachments/assets/17f1d463-80f1-488f-af88-df248104cd64" />
+
+
+
+## 7. COMPROBAR CONECTIVIDAD
 Probamos Internet:
 ```bash
 ping -c 4 8.8.8.8
@@ -122,7 +193,7 @@ ping -c 4 10.10.10.21
 
 Si alguna no responde, hay que revisar la configuración de red en VirtualBox y su netplan.
 
-## 7. GENERAR CLAVE SSH 
+## 8. GENERAR CLAVE SSH 
 
 Generaramos la clave SSH con:
 ```bash
@@ -136,7 +207,7 @@ Esto creará:
 ~/.ssh/id_ed25519
 ~/.ssh/id_ed25519.pub
 ```
-## 8. COPIAR LA CLAVE SSH AL RESTO DE MÁQUINAS
+## 9. COPIAR LA CLAVE SSH AL RESTO DE MÁQUINAS
 
 Desde jumpstart, ejecutar:
 ```bash
@@ -154,7 +225,7 @@ Si todo va bien, aparecerá:
 Number of key(s) added: 1
 ```
 
-## 9. PROBAR SSH SIN CONTRASEÑA
+## 10. PROBAR SSH SIN CONTRASEÑA
 
 Desde jumpstart, comprobar que ya entra sin pedir contraseña:
 ```bash
@@ -170,7 +241,7 @@ Para salir de cada sesión:
 exit
 ```
 
-## 10. INSTAÑAR ANSIBLE 
+## 11. INSTAÑAR ANSIBLE 
 ```bash
 sudo apt update
 sudo apt install ansible -y
@@ -180,7 +251,7 @@ Comprobar versión:
 ```bash
 ansible --version
 ```
-## 11. CREAR INVENTARIO hosts.ini 
+## 12. CREAR INVENTARIO hosts.ini 
 
 Creamos el fichero:
 ```bash
@@ -222,7 +293,7 @@ Si aparece eso, significa que Ansible funciona correctamente en toda la infraest
 
 
 
-## 12. DESPLEGAR `frontend1` Y `frontend2` CON ANSIBLE
+## 13. DESPLEGAR `frontend1` Y `frontend2` CON ANSIBLE
 
 La instalación de Apache, PHP y WordPress en los frontends se hace desde `jumpstart` con el playbook del repositorio:
 
@@ -265,7 +336,7 @@ curl http://localhost | head
 Si aparece un error de base de datos o la página no termina de cargar, normalmente significa que aún falta configurar `jumpstart`, el backend MySQL o ambos.
 
 
-## 13. ACTIVAR FORWARDING (PUENTE ENTRE FRONTEND Y BACKEND)
+## 14. ACTIVAR FORWARDING (PUENTE ENTRE FRONTEND Y BACKEND)
 Entramos en:  
 ```bash
 sudo nano /etc/sysctl.conf
