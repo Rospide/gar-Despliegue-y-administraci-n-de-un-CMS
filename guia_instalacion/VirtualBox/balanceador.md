@@ -36,7 +36,7 @@ network:
         - 10.0.0.1/24
       routes:
         - to: 10.10.10.0/24
-          via: 10.0.0.20
+          via: 10.0.0.100
 ```
 
 Aplicar cambios con:
