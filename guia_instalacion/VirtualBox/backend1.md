@@ -35,7 +35,7 @@ network:
         - 10.10.10.20/24
       routes:
         - to: 10.0.0.0/24
-          via: 10.10.10.10 
+          via: 10.10.10.100
 ```
 
 ## 4. Aplicar configuración
