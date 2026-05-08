@@ -17,7 +17,7 @@ Ir a configuración y luego a red
 
 ### Adaptador 1
 - Tipo: **NAT**
-- Nombre: **internal**
+
 
 ### Adaptador 2
 - Tipo: **Red Interna**
