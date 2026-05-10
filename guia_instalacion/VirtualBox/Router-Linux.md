@@ -128,6 +128,10 @@ y descomentamos la linea:
 net.ipv4.ip_forward=1
 ```
 
+```bash
+sudo sysctl -p
+```
+
 Luego, aplicamos los cambios con: 
 ```bash
 sudo netplan apply
