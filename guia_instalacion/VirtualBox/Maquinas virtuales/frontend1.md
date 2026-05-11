@@ -28,6 +28,15 @@ En mi caso ssh -p 2210 alejandroro@127.0.0.1
 ```bash
 # Dentro de la VM:
 chmod +x configurar_frontend.sh
+```
+Comprobar que el getaway es correcto
+```bash
+grep GATEWAY configurar_frontend.sh
+```
+Debe de aparecer: GATEWAY = "${3:-10.0.0.100}"
+
+
+```bash
 sudo ./configurar_frontend.sh frontend1 10.0.0.10
 exit
 ```
