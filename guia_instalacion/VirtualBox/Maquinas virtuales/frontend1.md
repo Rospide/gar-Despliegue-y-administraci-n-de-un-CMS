@@ -15,7 +15,7 @@ Desde la terminal de ubuntu donde hallaus guardado los archivos
 Ejecutais:
 ```bash
 chmod +x crear_frontend1.sh
-./crear_frontend1.sh alumno
+./crear_frontend1.sh <alumno>
 ```
 ## 3. Transferir los paquetes
 
