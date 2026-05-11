@@ -32,24 +32,26 @@ Jumpstart debe tener acceso a Internet por NAT, porque será quien descargue los
 
 Los backends pueden estar solo en la red internal, sin NAT.
 
-2. Entrar en Jumpstart
+## 2. Entrar en Jumpstart
 
 Desde el PC anfitrión:
-
+```bash
 ssh -p 2225 <USUARIO_VM>@127.0.0.1
-
+```
 Ejemplo:
-
+```bash
 ssh -p 2225 alejandroro@127.0.0.1
+```
+(esto ns si aun lo podeis hacer porque esto lo he hecho yo porque como ya tengo automatizado las vm he creado script q tienen puertos temporales por eso me deja, si no podeis os meteis desde ls vm)
 
 Una vez dentro, el prompt debería ser parecido a:
 
 alejandroro@jumpstart:~$
 
 Comprobar que estamos en Jumpstart:
-
+```bash
 hostname
-
+``
 Debe devolver:
 
 jumpstart
