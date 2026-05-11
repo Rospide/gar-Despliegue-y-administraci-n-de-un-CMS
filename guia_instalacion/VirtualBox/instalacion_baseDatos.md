@@ -119,6 +119,12 @@ Si todo está bien, deberías ver un valor de 2, tanto como en el backend1 y bac
 <img width="624" height="135" alt="imagen" src="https://github.com/user-attachments/assets/e6b8a78a-f936-4076-af40-474438b24314" />
 
 
+### Verificar que está todo correcto
+
+Ejecuta esto en cualquiera de los dos backends, si te sale lo mismo que aquí, HAS TERMINADO!!
+
+<img width="808" height="428" alt="imagen" src="https://github.com/user-attachments/assets/67d8d672-560f-42c1-9e25-34bf6c8dd8a4" />
+
 ---
 
 > [!CAUTION]
