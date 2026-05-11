@@ -51,17 +51,18 @@ alejandroro@jumpstart:~$
 Comprobar que estamos en Jumpstart:
 ```bash
 hostname
-``
+``` 
 Debe devolver:
 
 jumpstart
-3. Comprobar red de Jumpstart
+
+## 3. Comprobar red de Jumpstart
 
 Dentro de Jumpstart:
-
+```bash
 ip a | grep -E "10.10.10.10|10.10.10.100|10.0.0.20|10.0.0.100"
 cat /proc/sys/net/ipv4/ip_forward
-
+``` 
 Resultado esperado:
 
 10.0.0.20
@@ -72,52 +73,53 @@ Resultado esperado:
 Y:
 
 1
-4. Comprobar conectividad con backend1 y backend2
+## 4. Comprobar conectividad con backend1 y backend2
 
 Desde Jumpstart:
-
+```bash
 ping -c 3 10.10.10.20
 ping -c 3 10.10.10.21
-
+``` 
 Ambos deben responder.
 
 También comprobar SSH manualmente:
-
+```bash
 ssh <USUARIO_VM>@10.10.10.20
-
+```
 Ejemplo:
-
+bash```
 ssh alejandroro@10.10.10.20
-
+``` 
 Salir:
 
 exit
 
 Probar backend2:
-
+```bash
 ssh <USUARIO_VM>@10.10.10.21
-
+``` 
 Salir:
 
 exit
-5. Instalar Ansible y herramientas necesarias en Jumpstart
+## 5. Instalar Ansible y herramientas necesarias en Jumpstart
 
 Dentro de Jumpstart:
-
+```bash
 sudo apt update
 sudo apt install ansible sshpass apt-rdepends dpkg-dev -y
-
+``` 
 Comprobar:
-
+```bash
 ansible --version
-6. Crear inventario hosts.ini
+```
+## 6. Crear inventario hosts.ini
 
 Dentro de Jumpstart:
-
+```bash
 nano hosts.ini
-
+``` 
 Contenido:
-
+```bash
 [backends]
 backend1 ansible_host=10.10.10.20
 backend2 ansible_host=10.10.10.21
@@ -135,19 +137,19 @@ backend2 ansible_host=10.10.10.21
 [backends:vars]
 ansible_user=alejandroro
 ansible_python_interpreter=/usr/bin/python3
-
+``` 
 Guardar:
 
 CTRL + O
 ENTER
 CTRL + X
-7. Probar Ansible contra los backends
+## 7. Probar Ansible contra los backends
 Caso A: ya tienen claves SSH configuradas
 
 Probar:
-
+```bash
 ansible -i hosts.ini backends -m ping
-
+``` 
 Resultado esperado:
 
 backend1 | SUCCESS
@@ -155,9 +157,9 @@ backend2 | SUCCESS
 Caso B: no tienen claves SSH configuradas
 
 Usar -k para que Ansible pida contraseña SSH:
-
+```bash
 ansible -i hosts.ini backends -m ping -k
-
+```
 Pedirá:
 
 SSH password:
@@ -168,7 +170,7 @@ Resultado esperado:
 
 backend1 | SUCCESS
 backend2 | SUCCESS
-8. Opcional: configurar claves SSH para no usar -k
+## 8. Opcional: configurar claves SSH para no usar -k
 
 Este paso no es obligatorio, pero facilita el despliegue.
 
@@ -195,17 +197,17 @@ ansible -i hosts.ini backends -m ping
 
 Si sale SUCCESS, ya no hace falta usar -k.
 
-9. Crear preparar_jumpstart.yml
+## 9. Crear preparar_jumpstart.yml
 
 Este playbook descarga en Jumpstart todos los paquetes necesarios para instalar MariaDB/Galera offline en los backends.
 
 Dentro de Jumpstart:
-
+```bash
 nano preparar_jumpstart.yml
-
+``
 Contenido corregido:
 
----
+```bash
 - name: Preparar jumpstart para instalacion offline
   hosts: localhost
   become: yes
@@ -303,18 +305,18 @@ Contenido corregido:
            innodb_autoinc_lock_mode           = 2
            wsrep_node_address                 = "{% raw %}{{ ansible_host }}{% endraw %}"
            wsrep_node_name                    = "{% raw %}{{ inventory_hostname }}{% endraw %}"
-
+``` 
 Guardar:
 
 CTRL + O
 ENTER
 CTRL + X
-10. Ejecutar preparación offline en Jumpstart
+## 10. Ejecutar preparación offline en Jumpstart
 
 Dentro de Jumpstart:
-
+```bash
 ansible-playbook -i localhost, -c local preparar_jumpstart.yml -K
-
+``` 
 Pedirá:
 
 BECOME password:
@@ -329,7 +331,7 @@ Este playbook crea:
 
 /home/<USUARIO_VM>/mariadb_offline
 /home/<USUARIO_VM>/template/60-galera.cnf.j2
-11. Comprobar que el repositorio offline se ha creado bien
+## 11. Comprobar que el repositorio offline se ha creado bien
 
 Cambiar <USUARIO_VM> por el usuario real.
 
@@ -349,15 +351,15 @@ ls -lh /home/alejandroro/mariadb_offline/libcgi-fast-perl*.deb
 
 Deben existir todos.
 
-12. Crear backend.yml
+## 12. Crear backend.yml
 
 Dentro de Jumpstart:
-
+```bash
 nano backend.yml
-
+``
 Contenido:
 
----
+```bash
 - name: Instalacion de MariaDB Galera Offline
   hosts: backends
   become: yes
@@ -646,18 +648,18 @@ Contenido:
       debug:
         var: cluster_check.stdout_lines
       when: inventory_hostname == "backend1"
-
+``` 
 Guardar:
 
 CTRL + O
 ENTER
 CTRL + X
-13. Ejecutar instalación del cluster
+## 13. Ejecutar instalación del cluster
 
 Comprobar sintaxis:
-
+```bash
 ansible-playbook -i hosts.ini backend.yml --syntax-check
-
+``` 
 Ejecutar el playbook.
 
 Caso A: con claves SSH configuradas
