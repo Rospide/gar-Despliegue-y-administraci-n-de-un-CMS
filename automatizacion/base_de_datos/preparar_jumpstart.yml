@@ -93,5 +93,5 @@
            binlog_format                      = ROW
            default_storage_engine             = InnoDB
            innodb_autoinc_lock_mode           = 2
-           wsrep_node_address                 = "{% raw %}{{ ansible_host }}{% raw %}"
-           wsrep_node_name                    = "{% raw %}{{ inventory_hostname }}{% raw %}" 
+           wsrep_node_address                 = "{% raw %}{{ ansible_host }}{% endraw %}"
+           wsrep_node_name                    = "{% raw %}{{ inventory_hostname }}{% endraw %}" 
