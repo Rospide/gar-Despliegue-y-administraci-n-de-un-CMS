@@ -1,0 +1,78 @@
+---
+- name: Preparar jumpstart para isntalacion offline
+  hosts: localhost
+  become: yes
+  vars:
+    usuario: "{{ ansible_env.SUDO_USER | default(ansible_user_id) }}"
+
+  tasks:
+
+    - name: Instalar sshpass para permitir el uso de las contraseñas
+      apt:
+        name: 
+          - sshpass
+          - apt-rdepends
+          - dpkg-dev
+        state: present
+        update_cache: yes
+
+    - name: Crear carpeta para paquetes MariaDB
+      file: 
+         path: "/home/{{ usuario }}/mariadb_offline"
+         state: directory
+         owner: "{{ usuario }}"
+         group: "{{ usuario }}"
+         mode: '0755'
+
+    - name: Descargar paquetes de MariaDB y dependencias
+      shell: |
+         set -e
+         DEST="/home/{{ usuario }}/mariadb_offline"
+        
+         rm -rf "$DEST"
+         mkdir -p "$DEST"
+         cd "$DEST"
+
+         apt-get update
+
+         apt-rdepends mariadb-server mariadb-client galera-3 socat tinyca liburi-perl libhttp-message-perl liblwp-mediatypes-perl libio-html-perl libhttp-date-perl libencode-locale-perl \
+           | grep -v "^ " \
+           | grep -v "^PreDepends:" \
+           | grep -v "^Depends:" \
+           | grep -v "^Recommends" \
+           | sort -u > paquetes.txt
+
+         while read -r pkg; do
+           apt-cache show "$pkg" >/dev/null 2>&1 && apt-get download "$pkg" || true
+         done < paquetes.txt
+
+         dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
+
+         ls "$DEST"/liburi-perl*.deb >/dev/null 2>&1
+
+         chown -R {{ usuario }}:{{ usuario }} "$DEST"
+
+    - name: Asegurar que las plantillas existen
+      file:
+        path: "/home/{{ usuario }}/template"
+        state: directory
+        owner: "{{ usuario }}"
+        group: "{{ usuario }}"
+        mode: '0755'
+
+    - name: Crear la plantilla Jinja2 de Galera
+      copy:
+        dest: "/home/{{ usuario }}/template/60-galera.cnf.j2"
+        owner: "{{ usuario }}"
+        group: "{{ usuario }}"
+        content: | 
+          [mysqld]
+           wsrep_on                           = ON
+           wsrep_cluster_name                 = "galera_cluster_proyecto"
+           wsrep_provider                     = /usr/lib/galera/libgalera_smm.so
+           wsrep_cluster_address              = "gcomm://10.10.10.20,10.10.10.21"
+           binlog_format                      = ROW
+           default_storage_engine             = InnoDB
+           innodb_autoinc_lock_mode           = 2
+           wsrep_node_address                 = "{% raw %}{{ ansible_host }}{% endraw %}"
+           wsrep_node_name                    = "{% raw %}{{ inventory_hostname }}{% endraw %}" 
