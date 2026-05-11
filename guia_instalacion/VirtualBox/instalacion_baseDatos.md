@@ -37,13 +37,10 @@ En jumpstart usa el comando que veras a continuación, pero con tu usuario corre
 
 <img width="710" height="78" alt="imagen" src="https://github.com/user-attachments/assets/7bcc6ff2-1839-4e2b-8f6a-9f2ee12bde4b" />
 
-Una vez dentro comprueba que se ven estos dos scripts:
+Comprueba que se ven estos dos scripts:
 
-<img width="710" height="78" alt="imagen" src="https://github.com/user-attachments/assets/910c9ef2-4942-42c1-a3a3-ae498e44c34b" />
+<img width="995" height="85" alt="imagen" src="https://github.com/user-attachments/assets/e5914335-dc0f-45f4-9bec-0c4f2787c705" />
 
-Comprueba que dentro tienes estos dos archivos:
-
-<img width="667" height="75" alt="imagen" src="https://github.com/user-attachments/assets/9e24aac4-0a89-45f6-8dc6-9b8bb584ecb4" />
 
 ## Llevar los ejecutables desde servidor a máquina local
 
@@ -54,7 +51,8 @@ POr ejemplo:
 ```
 scp -r sandraro@tbworkers4.esi.uclm.es:~/* .
 ```
-Una vez lo tienes en el LOCAL comprueba que tienes los archivos preparar_jumpstart.yml y backend.yml
+Una vez lo ejecutas vuelve a LOCAL y comprueba que tienes los archivos "preparar_jumpstart.yml y backend.yml"
+
 
 <img width="995" height="107" alt="imagen" src="https://github.com/user-attachments/assets/d9bec42d-d592-4210-94ea-1c739642fb63" />
 
@@ -79,12 +77,15 @@ Sigue este orden exacto para evitar errores de dependencias o permisos:
 ### A. Preparar el Entorno Local
 
 Este comando instalará las herramientas necesarias (como sshpass) y descargará los paquetes necesarios para la instalación offline.
-Bash
+
+Si no os sale verde, como en mi captura, y os sale amarillo no pasa nada, es porque lo estáis ejecutando por primera vez. 
+
 ```
 ansible-playbook preparar_jumpstart.yml -K
 ```
 
-<img width="1331" height="740" alt="imagen" src="https://github.com/user-attachments/assets/2d273300-b19c-4507-81fb-c2bd4a7e0900" />
+<img width="1247" height="677" alt="imagen" src="https://github.com/user-attachments/assets/b3e723d9-9f58-4ef3-889f-dfb7b3e95344" />
+
 
 
     Nota: La opción -K te pedirá la contraseña de sudo (Become password).
@@ -94,15 +95,9 @@ ansible-playbook preparar_jumpstart.yml -K
 Este comando ejecutará la instalación de MariaDB y la configuración de Galera en los backends.
 Bash
 ```
-ansible-playbook -i hosts.ini backend.yml -u TU_USUARIO -k -K
+ansible-playbook -i hosts.ini backend.yml -K
 
 ```
-
-
-    -u TU_USUARIO: El usuario que usas para conectar a los backends.
-
-    -k: Te pedirá la contraseña de SSH.
-
     -K: Te pedirá la contraseña de sudo.
 
 Una vez salga todo correcto
