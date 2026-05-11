@@ -204,7 +204,7 @@ Este playbook descarga en Jumpstart todos los paquetes necesarios para instalar 
 Dentro de Jumpstart:
 ```bash
 nano preparar_jumpstart.yml
-``
+``` 
 Contenido corregido:
 
 ```bash
