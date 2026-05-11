@@ -35,7 +35,22 @@
 
          apt-get update
 
-         apt-rdepends mariadb-server mariadb-client galera-3 socat tinyca liburi-perl libhttp-message-perl liblwp-mediatypes-perl libio-html-perl libhttp-date-perl libencode-locale-perl \
+         apt-rdepends \
+           mariadb-server \
+           mariadb-client \
+           galera-3 \
+           socat \
+           tinyca \
+           liburi-perl \
+           libhttp-message-perl \
+           liblwp-mediatypes-perl \
+           libio-html-perl \
+           libhttp-date-perl \
+           libencode-locale-perl \
+           libhtml-parser-perl \
+           libcgi-pm-perl \
+           libhtml-template-perl \
+           libcgi-fast-perl \
            | grep -v "^ " \
            | grep -v "^PreDepends:" \
            | grep -v "^Depends:" \
@@ -49,6 +64,10 @@
          dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz
 
          ls "$DEST"/liburi-perl*.deb >/dev/null 2>&1
+         ls "$DEST"/libhtml-parser-perl*.deb >/dev/null 2>&1
+         ls "$DEST"/libcgi-pm-perl*.deb >/dev/null 2>&1
+         ls "$DEST"/libhtml-template-perl*.deb >/dev/null 2>&1
+         ls "$DEST"/libcgi-fast-perl*.deb >/dev/null 2>&1
 
          chown -R {{ usuario }}:{{ usuario }} "$DEST"
 
@@ -74,5 +93,5 @@
            binlog_format                      = ROW
            default_storage_engine             = InnoDB
            innodb_autoinc_lock_mode           = 2
-           wsrep_node_address                 = "{% raw %}{{ ansible_host }}{% endraw %}"
-           wsrep_node_name                    = "{% raw %}{{ inventory_hostname }}{% endraw %}" 
+           wsrep_node_address                 = "{% raw %}{{ ansible_host }}{% raw %}"
+           wsrep_node_name                    = "{% raw %}{{ inventory_hostname }}{% raw %}" 
