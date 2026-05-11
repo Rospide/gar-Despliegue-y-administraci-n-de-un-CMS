@@ -26,7 +26,7 @@ Con estas IPs:
 jumpstart internal -> 10.10.10.10
 backend1           -> 10.10.10.20
 backend2           -> 10.10.10.21
-``
+``` 
 
 Jumpstart debe tener acceso a Internet por NAT, porque será quien descargue los paquetes.
 
