@@ -13,11 +13,11 @@ Los backends no necesitan NAT ni Internet directo. Jumpstart prepara un reposito
 ## 1. Requisitos previos
 
 Antes de empezar deben existir estas máquinas:
-bash '''
+```text
 jumpstart
 backend1
 backend2
-'''
+```
 
 Con estas IPs:
 
