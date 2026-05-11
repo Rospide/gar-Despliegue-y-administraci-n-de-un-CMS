@@ -54,6 +54,9 @@ POr ejemplo:
 ```
 scp -r sandraro@tbworkers4.esi.uclm.es:~/* .
 ```
+Una vez lo tienes en el LOCAL comprueba que tienes los archivos preparar_jumpstart.yml y backend.yml
+
+<img width="995" height="107" alt="imagen" src="https://github.com/user-attachments/assets/d9bec42d-d592-4210-94ea-1c739642fb63" />
 
 ## Instalación de Ansible (Solo en Jumpstart)
 
@@ -104,7 +107,8 @@ ansible-playbook -i hosts.ini backend.yml -u TU_USUARIO -k -K
 
 Una vez salga todo correcto
 
-<img width="1000" height="412" alt="imagen" src="https://github.com/user-attachments/assets/e960ee46-5365-40ef-af69-940f6f29592f" />
+<img width="1254" height="873" alt="imagen" src="https://github.com/user-attachments/assets/9e2bc85d-5045-4a95-8d7c-bff8a857ff3f" />
+
 
 
 ### Verificar el Cluster (En cualquier Backend)
@@ -117,7 +121,8 @@ sudo mysql -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
 Resultado esperado:
 Si todo está bien, deberías ver un valor de 2, tanto como en el backend1 y backend2:
 
-<img width="1000" height="412" alt="imagen" src="https://github.com/user-attachments/assets/ed79ccbd-db85-4fec-ba01-2cf97a09cb49" />
+<img width="624" height="135" alt="imagen" src="https://github.com/user-attachments/assets/e6b8a78a-f936-4076-af40-474438b24314" />
+
 
 ---
 
