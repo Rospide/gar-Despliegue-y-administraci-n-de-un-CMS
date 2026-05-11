@@ -10,13 +10,14 @@ La instalación se hace desde jumpstart mediante Ansible.
 
 Los backends no necesitan NAT ni Internet directo. Jumpstart prepara un repositorio offline con todos los paquetes .deb, lo copia a los backends y desde ahí instala MariaDB/Galera.
 
-1. Requisitos previos
+## 1. Requisitos previos
 
 Antes de empezar deben existir estas máquinas:
-
+bash '''
 jumpstart
 backend1
 backend2
+'''
 
 Con estas IPs:
 
