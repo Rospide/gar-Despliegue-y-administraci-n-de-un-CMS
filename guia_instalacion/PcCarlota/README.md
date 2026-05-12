@@ -11,6 +11,7 @@ Usa estas guías si estás montando el laboratorio en UTM:
 - `backend2_utm.md`
 - `balanceador_utm.md`
 - `jumpstart_utm.md`
+- `router-linux_utm.md`
 - `instalacion_baseDatos_utm.md`
 
 Las redes esperadas en UTM son:
@@ -21,10 +22,18 @@ Las redes esperadas en UTM son:
 
 No mezclar estas guías con las de la carpeta `VirtualBox`, porque cambian los adaptadores y los nombres habituales de interfaz.
 
-En estas guías solo se automatizan:
+Equivalencias principales de red:
 
-- `frontend1`
-- `frontend2`
-- `jumpstart`
+- En VirtualBox se usan nombres típicos como `enp0s3`, `enp0s8` y `enp0s9`.
+- En UTM normalmente se usan `enp0s1`, `enp0s2` y `enp0s3`.
+- Comprueba siempre los nombres reales con `ip a` antes de aplicar un netplan.
 
-`backend1`, `backend2`, `balanceador` y la base de datos se dejan manuales para que los completen tus compañeros.
+Plan de IPs usado en PcCarlota:
+
+- `jumpstart`: `192.168.50.10` en `main` y `10.10.10.1` en `internal`
+- `frontend1`: `192.168.50.30`
+- `frontend2`: `192.168.50.31`
+- `balanceador`: `192.168.50.20`
+- `backend1`: `10.10.10.10`
+- `backend2`: `10.10.10.11`
+- `router-linux`: `192.168.50.254` en `main` y `10.10.10.254` en `internal`

@@ -1,0 +1,10 @@
+[galera]
+wsrep_on                 = ON
+wsrep_cluster_name       = "galera_cluster_proyecto"
+wsrep_provider           = /usr/lib/galera/libgalera_smm.so
+wsrep_cluster_address    = "gcomm://10.10.10.10,10.10.10.11"
+binlog_format            = ROW
+default_storage_engine   = InnoDB
+innodb_autoinc_lock_mode = 2
+wsrep_node_address       = "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+wsrep_node_name          = "{{ ansible_hostname }}"

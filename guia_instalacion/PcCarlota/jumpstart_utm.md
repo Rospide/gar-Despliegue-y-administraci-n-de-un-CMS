@@ -126,7 +126,6 @@ Probar máquinas de la red `internal`:
 ```bash
 ping -c 4 10.10.10.10
 ping -c 4 10.10.10.11
-ping -c 4 10.10.10.20
 ```
 
 Si alguna no responde, revisar:
@@ -210,10 +209,8 @@ inventario/hosts.ini
 Ahora mismo el inventario del grupo usa:
 
 ```bash
-ansible_user=alejandroro
+ansible_user=carlotamo
 ```
-
-No lo cambies si tus compañeros han acordado usar ese usuario.
 
 ## 13. Comprobar que Ansible llega a los nodos
 

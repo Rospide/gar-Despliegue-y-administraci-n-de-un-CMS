@@ -48,7 +48,7 @@ Importante: usa en el fichero de red los nombres que te aparezcan realmente a ti
 Editar el fichero de red:
 
 ```bash
-sudo nano /etc/netplan/00-installer-config.yaml
+sudo nano /etc/netplan/50-cloud-init-yaml
 ```
 
 Si ese fichero no existe, mira cuál tienes con:

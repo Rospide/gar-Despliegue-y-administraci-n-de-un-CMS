@@ -1,0 +1,35 @@
+---
+- name: Instalar NGINX de prueba en backends UTM
+  hosts: backends:backend
+  become: yes
+
+  tasks:
+    - name: Instalar NGINX
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Crear página identificativa en backend1
+      copy:
+        dest: /var/www/html/index.html
+        content: "SOY BACKEND1\n"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+      when: inventory_hostname == "backend1" or (ansible_host | default(inventory_hostname)) == "10.10.10.10"
+
+    - name: Crear página identificativa en backend2
+      copy:
+        dest: /var/www/html/index.html
+        content: "SOY BACKEND2\n"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+      when: inventory_hostname == "backend2" or (ansible_host | default(inventory_hostname)) == "10.10.10.11"
+
+    - name: Reiniciar y activar NGINX
+      systemd:
+        name: nginx
+        state: restarted
+        enabled: yes

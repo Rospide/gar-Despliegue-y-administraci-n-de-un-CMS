@@ -3,8 +3,8 @@
 set -euo pipefail
 
 if [[ $# -gt 1 ]]; then
-  echo "Uso: sudo ./configurar_jumpstart.sh [hostname]"
-  echo "Ejemplo: sudo ./configurar_jumpstart.sh jumpstart"
+  echo "Uso: sudo ./configurar_router_linux.sh [hostname]"
+  echo "Ejemplo: sudo ./configurar_router_linux.sh router-linux"
   exit 1
 fi
 
@@ -13,10 +13,10 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-HOSTNAME_VALUE="${1:-jumpstart}"
+HOSTNAME_VALUE="${1:-router-linux}"
 
-MAIN_IP="192.168.50.10"
-INTERNAL_IP="10.10.10.1"
+MAIN_IP="192.168.50.254"
+INTERNAL_IP="10.10.10.254"
 VIP_MAIN="192.168.50.100"
 VIP_INTERNAL="10.10.10.100"
 
@@ -137,7 +137,7 @@ enable_forwarding() {
 
 install_packages() {
   apt update
-  apt install keepalived ansible sshpass curl -y
+  apt install keepalived -y
 }
 
 configure_keepalived() {
@@ -145,10 +145,10 @@ configure_keepalived() {
 
   cat > /etc/keepalived/keepalived.conf <<EOF
 vrrp_instance VI_MAIN {
-    state MASTER
+    state BACKUP
     interface ${MAIN_IFACE}
     virtual_router_id 51
-    priority 100
+    priority 50
     advert_int 1
     authentication {
         auth_type PASS
@@ -160,10 +160,10 @@ vrrp_instance VI_MAIN {
 }
 
 vrrp_instance VI_INTERNAL {
-    state MASTER
+    state BACKUP
     interface ${INTERNAL_IFACE}
     virtual_router_id 52
-    priority 100
+    priority 50
     advert_int 1
     authentication {
         auth_type PASS
@@ -182,25 +182,21 @@ EOF
 
 print_summary() {
   echo
-  echo "Configuración aplicada en jumpstart:"
+  echo "Configuración aplicada en router-linux:"
   echo "- Hostname: ${HOSTNAME_VALUE}"
   echo "- NAT: ${NAT_IFACE} DHCP"
   echo "- Main: ${MAIN_IFACE} ${MAIN_IP}/24"
   echo "- Internal: ${INTERNAL_IFACE} ${INTERNAL_IP}/24"
-  echo "- VIP main: ${VIP_MAIN}"
-  echo "- VIP internal: ${VIP_INTERNAL}"
+  echo "- VIP main backup: ${VIP_MAIN}"
+  echo "- VIP internal backup: ${VIP_INTERNAL}"
   echo "- Forwarding activado"
-  echo "- Keepalived instalado y configurado"
-  echo "- Ansible instalado"
   echo
-
   ip a show "${NAT_IFACE}" || true
   ip a show "${MAIN_IFACE}" || true
   ip a show "${INTERNAL_IFACE}" || true
   ip route || true
   cat /proc/sys/net/ipv4/ip_forward || true
   systemctl --no-pager --full status keepalived | head -n 20 || true
-  ansible --version | head -n 1 || true
 }
 
 NETPLAN_FILE="$(find_netplan_file)"
@@ -227,7 +223,7 @@ netplan apply
 echo "[6/8] Activando forwarding..."
 enable_forwarding
 
-echo "[7/8] Instalando y configurando keepalived/ansible..."
+echo "[7/8] Instalando y configurando keepalived..."
 install_packages
 backup_keepalived
 configure_keepalived
