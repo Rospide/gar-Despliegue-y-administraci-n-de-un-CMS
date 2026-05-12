@@ -46,7 +46,14 @@ La configuración dentro de Ubuntu se hace con el script del repositorio:
 ```bash
 automatizacion/PcCarlota/scripts/configurar_frontend.sh
 ```
+Desde nuestro terminal local en la carpeta donde se encuentra el archivo o usando la ruta completa:
+   
+```bash
+scp configurar_frontend.sh carlotamo@tbworkers4.esi.uclm.es:~
+```
 
+Eso lo copia en Eso lo copia a tu carpeta personal remota, es decir, al home de carlotamo en tbworkers4.
+   
 Ejecutar:
 
 ```bash
