@@ -5,9 +5,18 @@
     wordpress_db_user: wpuser
     wordpress_db_password: password
     wordpress_db_host: 10.10.10.20
-    wordpress_archive: /tmp/latest.tar.gz
+    wordpress_archive: /tmp/wordpress-latest.tar.gz
     wordpress_extract_dir: /tmp/wordpress
     wordpress_web_root: /var/www/html
+    apache_wordpress_conf: /etc/apache2/conf-available/wordpress.conf
+    wordpress_auth_key: "lab-auth-key-virtualbox-2026"
+    wordpress_secure_auth_key: "lab-secure-auth-key-virtualbox-2026"
+    wordpress_logged_in_key: "lab-logged-in-key-virtualbox-2026"
+    wordpress_nonce_key: "lab-nonce-key-virtualbox-2026"
+    wordpress_auth_salt: "lab-auth-salt-virtualbox-2026"
+    wordpress_secure_auth_salt: "lab-secure-auth-salt-virtualbox-2026"
+    wordpress_logged_in_salt: "lab-logged-in-salt-virtualbox-2026"
+    wordpress_nonce_salt: "lab-nonce-salt-virtualbox-2026"
 
   tasks:
     - name: Instalar Apache, PHP y cliente MySQL
@@ -17,21 +26,32 @@
           - php
           - libapache2-mod-php
           - php-mysql
+          - php-curl
+          - php-gd
+          - php-mbstring
+          - php-xml
+          - php-zip
           - mysql-client
         state: present
         update_cache: yes
 
-    - name: Descargar WordPress
+    - name: Descargar WordPress en jumpstart
       get_url:
         url: https://wordpress.org/latest.tar.gz
         dest: "{{ wordpress_archive }}"
         mode: "0644"
+      delegate_to: localhost
+      run_once: yes
+
+    - name: Limpiar extraccion anterior de WordPress
+      file:
+        path: "{{ wordpress_extract_dir }}"
+        state: absent
 
     - name: Descomprimir WordPress
       unarchive:
         src: "{{ wordpress_archive }}"
         dest: /tmp
-        remote_src: yes
 
     - name: Asegurar directorio web
       file:
@@ -41,8 +61,15 @@
         group: www-data
         mode: "0755"
 
+    - name: Quitar pagina por defecto de Apache
+      file:
+        path: "{{ wordpress_web_root }}/index.html"
+        state: absent
+
     - name: Copiar WordPress al directorio web
       command: cp -a {{ wordpress_extract_dir }}/. {{ wordpress_web_root }}/
+      args:
+        creates: "{{ wordpress_web_root }}/wp-settings.php"
 
     - name: Generar wp-config.php
       template:
@@ -59,6 +86,33 @@
         group: www-data
         mode: "0755"
         recurse: yes
+
+    - name: Permitir .htaccess de WordPress en Apache
+      copy:
+        dest: "{{ apache_wordpress_conf }}"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          <Directory /var/www/html>
+              AllowOverride All
+          </Directory>
+
+    - name: Activar mod_rewrite de Apache
+      command: a2enmod rewrite
+      register: apache_rewrite
+      changed_when: "'already enabled' not in apache_rewrite.stdout"
+
+    - name: Activar configuracion de WordPress en Apache
+      command: a2enconf wordpress
+      register: apache_wordpress_conf_enabled
+      changed_when: "'already enabled' not in apache_wordpress_conf_enabled.stdout"
+
+    - name: Permitir HTTP en UFW si esta activo
+      command: ufw allow Apache
+      register: ufw_apache
+      changed_when: "'Rules updated' in ufw_apache.stdout"
+      ignore_errors: yes
 
     - name: Reiniciar Apache
       systemd:

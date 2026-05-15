@@ -303,29 +303,30 @@ automatizacion/VirtualBox/playbooks/frontend_wordpress.yml
 
 Antes de ejecutarlo, conviene comprobar que `jumpstart` llega a los frontends.
 
-Se puede usar:
-
-- el inventario común del repositorio en `inventario/hosts.ini`
+Se puede usar el inventario de la automatizacion de VirtualBox:
 
 Comprobación:
 
 ```bash
-ansible 'frontends:frontend' -i inventario/hosts.ini -m ping
+ansible 'frontends:frontend' -i automatizacion/VirtualBox/hosts.ini -m ping
 ```
 
 Ejecutar el despliegue:
 
 ```bash
-ansible-playbook -i inventario/hosts.ini automatizacion/VirtualBox/playbooks/frontend_wordpress.yml --ask-become-pass
+ansible-playbook -i automatizacion/VirtualBox/hosts.ini automatizacion/VirtualBox/playbooks/frontend_wordpress.yml --ask-become-pass
 ```
 
 El playbook realiza automáticamente estas tareas en `frontend1` y `frontend2`:
 
-- instalar `apache2`, `php`, `php-mysql` y `mysql-client`
-- descargar y copiar WordPress en `/var/www/html`
+- instalar `apache2`, `php`, extensiones PHP de WordPress, `php-mysql` y `mysql-client`
+- descargar WordPress en `jumpstart` y copiarlo en `/var/www/html`
 - generar `wp-config.php`
 - configurar la base de datos para usar `10.10.10.20`
+- activar `mod_rewrite` y la configuracion de Apache para WordPress
 - reiniciar Apache
+
+La checklist especifica de la parte 4 queda integrada en las guias de `frontend1` y `frontend2`.
 
 Si el playbook termina bien, se puede comprobar desde cada frontend:
 

@@ -200,13 +200,13 @@ ansible --version
 
 ## 12. Preparar inventario
 
-Usar el inventario común del repositorio:
+Usar el inventario de la automatizacion de PcCarlota:
 
 ```bash
-inventario/hosts.ini
+automatizacion/PcCarlota/hosts.ini
 ```
 
-Ahora mismo el inventario del grupo usa:
+Ahora mismo este inventario usa:
 
 ```bash
 ansible_user=carlotamo
@@ -215,7 +215,7 @@ ansible_user=carlotamo
 ## 13. Comprobar que Ansible llega a los nodos
 
 ```bash
-ansible all -i inventario/hosts.ini -m ping
+ansible all -i automatizacion/PcCarlota/hosts.ini -m ping
 ```
 
 El resultado esperado es:
@@ -230,17 +230,21 @@ SUCCESS
 Desde `jumpstart`, ejecutar:
 
 ```bash
-ansible-playbook -i inventario/hosts.ini automatizacion/PcCarlota/playbooks/frontend_wordpress.yml --ask-become-pass
+ansible-playbook -i automatizacion/PcCarlota/hosts.ini automatizacion/PcCarlota/playbooks/frontend_wordpress.yml --ask-become-pass
 ```
 
 Este playbook instala automáticamente en los frontends:
 
 - `apache2`
 - `php`
+- extensiones PHP necesarias para WordPress
 - `php-mysql`
 - `mysql-client`
 - WordPress
 - `wp-config.php`
+- configuracion de Apache para WordPress
+
+La checklist especifica de la parte 4 queda integrada en las guias de `frontend1` y `frontend2`.
 
 ## 15. Activar forwarding entre frontends y backends
 

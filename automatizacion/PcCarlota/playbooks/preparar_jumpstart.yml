@@ -28,7 +28,12 @@
          else
            GALERA_PACKAGE=galera-3
          fi
-         apt-get download mariadb-server mariadb-client "$GALERA_PACKAGE" socat libmariadb3 libaio1 libdbd-mysql-perl libdbi-perl libterm-readkey-perl
+         if apt-cache show libaio1t64 >/dev/null 2>&1; then
+           LIBAIO_PACKAGE=libaio1t64
+         else
+           LIBAIO_PACKAGE=libaio1
+         fi
+         apt-get download mariadb-server mariadb-server-core mariadb-client mariadb-client-core "$GALERA_PACKAGE" socat libmariadb3 "$LIBAIO_PACKAGE" liburing2 libdbd-mysql-perl libdbi-perl libterm-readkey-perl
    
       args:   
         creates: "{{ mariadb_repo_dir }}/mariadb-server*.deb"
