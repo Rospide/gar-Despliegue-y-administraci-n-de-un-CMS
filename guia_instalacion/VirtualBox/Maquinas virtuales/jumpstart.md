@@ -258,16 +258,17 @@ Eso no es un error. Significa que la clave ya estaba instalad
 Primero debe crear el inventario:
 
 [frontends]
-10.0.0.10
-10.0.0.11
+frontend1 ansible_host=10.0.0.10
+frontend2 ansible_host=10.0.0.11
 
 [backends]
-10.10.10.20
-10.10.10.21
+backend1 ansible_host=10.10.10.20
+backend2 ansible_host=10.10.10.21
 
 [all:vars]
 ansible_user=<USUARIO_VM>
 ansible_ssh_private_key_file=/home/<USUARIO_VM>/.ssh/id_ed25519
+ansible_python_interpreter=/usr/bin/python3
 
 Después debe probar SSH y mostrar los hostnames:
 
