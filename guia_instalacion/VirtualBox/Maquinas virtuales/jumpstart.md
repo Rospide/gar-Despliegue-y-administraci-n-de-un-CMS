@@ -1055,4 +1055,333 @@ Resultado esperado:
 |  1 | replicacion correcta |
 +----+----------------------+
 
+
+
+
+## ULTIMA PARTE AUTOMATIZACIÓN DE LOS FRONTENDS
+
+Despliegue de WordPress en frontend1 y frontend2
+
+Esta parte se hace cuando ya están creadas y configuradas estas máquinas:
+
+```text
+jumpstart
+frontend1 -> 10.0.0.10
+frontend2 -> 10.0.0.11
+backend1  -> 10.10.10.20
+backend2  -> 10.10.10.21
+
+
+
+
 Esto confirma que la replicación funciona correctamente.
+
+
+
+WordPress se conecta a la base de datos Galera creada anteriormente:
+
+DB_NAME = wordpress_db
+DB_USER = wordpress_user
+DB_PASSWORD = wordpress_pass
+DB_HOST = 10.10.10.20
+
+
+## 1 Comprobar q el hosts.ini esta bien
+
+```bash
+sudo nano hosts.ini
+```
+
+Contenido
+
+```bash
+[frontends]
+frontend1 ansible_host=10.0.0.10
+frontend2 ansible_host=10.0.0.11
+
+[backends]
+backend1 ansible_host=10.10.10.20
+backend2 ansible_host=10.10.10.21
+
+[all:vars]
+ansible_user=<USUARIO_VM>
+ansible_ssh_private_key_file=/home/<USUARIO_VM>/.ssh/id_ed25519
+ansible_python_interpreter=/usr/bin/python3
+```
+
+Ejemplo:
+
+[frontends]
+frontend1 ansible_host=10.0.0.10
+frontend2 ansible_host=10.0.0.11
+
+[backends]
+backend1 ansible_host=10.10.10.20
+backend2 ansible_host=10.10.10.21
+
+[all:vars]
+ansible_user=alejandroro
+ansible_ssh_private_key_file=/home/alejandroro/.ssh/id_ed25519
+ansible_python_interpreter=/usr/bin/python3
+
+
+Comprobar:
+```bash
+ansible -i hosts.ini frontends -m ping
+```
+
+## 2. Crear el playbook frontend_wordpress.yml
+
+Este archivo se puede crear primero en el PC anfitrión y luego copiarlo a jumpstart.
+
+En el PC anfitrión:
+
+```bash
+nano frontend_wordpress.yml
+```
+Contenido
+```bash
+---
+- name: Desplegar WordPress en frontend1 y frontend2
+  hosts: frontends
+  become: yes
+
+  vars:
+    wp_db_name: wordpress_db
+    wp_db_user: wordpress_user
+    wp_db_pass: wordpress_pass
+    wp_db_host: 10.10.10.20
+
+    wp_download_url: https://wordpress.org/latest.tar.gz
+    wp_local_tar: /tmp/wordpress-latest.tar.gz
+    wp_web_root: /var/www/html
+
+  pre_tasks:
+    - name: Descargar WordPress en jumpstart
+      get_url:
+        url: "{{ wp_download_url }}"
+        dest: "{{ wp_local_tar }}"
+        mode: "0644"
+      delegate_to: localhost
+      become: no
+      run_once: true
+
+  tasks:
+    - name: Instalar Apache, PHP y cliente MySQL
+      apt:
+        name:
+          - apache2
+          - php
+          - libapache2-mod-php
+          - php-mysql
+          - php-curl
+          - php-gd
+          - php-mbstring
+          - php-xml
+          - php-xmlrpc
+          - php-soap
+          - php-intl
+          - php-zip
+          - unzip
+          - tar
+          - mysql-client
+        state: present
+        update_cache: yes
+
+    - name: Activar Apache al arrancar
+      systemd:
+        name: apache2
+        enabled: yes
+        state: started
+
+    - name: Limpiar instalación web anterior
+      shell: |
+        rm -rf {{ wp_web_root }}/*
+        rm -rf /tmp/wordpress
+      ignore_errors: yes
+
+    - name: Copiar y descomprimir WordPress en frontend
+      unarchive:
+        src: "{{ wp_local_tar }}"
+        dest: /tmp/
+        remote_src: no
+
+    - name: Copiar WordPress a /var/www/html
+      shell: |
+        cp -a /tmp/wordpress/. {{ wp_web_root }}/
+        chown -R www-data:www-data {{ wp_web_root }}
+        find {{ wp_web_root }} -type d -exec chmod 755 {} \;
+        find {{ wp_web_root }} -type f -exec chmod 644 {} \;
+
+    - name: Crear wp-config.php
+      copy:
+        dest: "{{ wp_web_root }}/wp-config.php"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+        content: |
+          <?php
+          define( 'DB_NAME', '{{ wp_db_name }}' );
+          define( 'DB_USER', '{{ wp_db_user }}' );
+          define( 'DB_PASSWORD', '{{ wp_db_pass }}' );
+          define( 'DB_HOST', '{{ wp_db_host }}' );
+          define( 'DB_CHARSET', 'utf8' );
+          define( 'DB_COLLATE', '' );
+
+          define( 'AUTH_KEY',         'proyecto-auth-key' );
+          define( 'SECURE_AUTH_KEY',  'proyecto-secure-auth-key' );
+          define( 'LOGGED_IN_KEY',    'proyecto-logged-in-key' );
+          define( 'NONCE_KEY',        'proyecto-nonce-key' );
+          define( 'AUTH_SALT',        'proyecto-auth-salt' );
+          define( 'SECURE_AUTH_SALT', 'proyecto-secure-auth-salt' );
+          define( 'LOGGED_IN_SALT',   'proyecto-logged-in-salt' );
+          define( 'NONCE_SALT',       'proyecto-nonce-salt' );
+
+          $table_prefix = 'wp_';
+
+          define( 'WP_DEBUG', false );
+
+          if ( ! defined( 'ABSPATH' ) ) {
+              define( 'ABSPATH', __DIR__ . '/' );
+          }
+
+          require_once ABSPATH . 'wp-settings.php';
+
+    - name: Configurar Apache para WordPress
+      copy:
+        dest: /etc/apache2/sites-available/000-default.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          <VirtualHost *:80>
+              ServerAdmin webmaster@localhost
+              DocumentRoot /var/www/html
+
+              <Directory /var/www/html>
+                  AllowOverride All
+                  Require all granted
+              </Directory>
+
+              ErrorLog ${APACHE_LOG_DIR}/error.log
+              CustomLog ${APACHE_LOG_DIR}/access.log combined
+          </VirtualHost>
+
+    - name: Activar mod_rewrite
+      command: a2enmod rewrite
+      register: rewrite_result
+      changed_when: "'Enabling module rewrite' in rewrite_result.stdout or 'To activate the new configuration' in rewrite_result.stdout"
+      failed_when: false
+
+    - name: Reiniciar Apache
+      systemd:
+        name: apache2
+        state: restarted
+
+    - name: Comprobar conexión con la base de datos
+      shell: |
+        mysql -h {{ wp_db_host }} -u {{ wp_db_user }} -p{{ wp_db_pass }} -e "SHOW DATABASES;"
+      register: db_check
+      changed_when: false
+
+    - name: Mostrar resultado de conexión a la base de datos
+      debug:
+        var: db_check.stdout_lines
+```
+
+## 3. Copiar el playbook a jumpstart
+
+Desde el PC anfitrión:
+```bash
+scp -P 2225 frontend_wordpress.yml <USUARIO_VM>@127.0.0.1:~/
+```  
+Ejemplo:
+
+scp -P 2225 frontend_wordpress.yml alejandroro@127.0.0.1:~/
+
+
+## 4. Ejecutar el despliegue desde jumpstart
+
+Entrar a jumpstart:
+``` bash
+ssh -p 2225 <USUARIO_VM>@127.0.0.1
+``` 
+Ejemplo:
+
+ssh -p 2225 alejandroro@127.0.0.1
+
+Comprobar sintaxis:
+```bash
+ansible-playbook -i hosts.ini frontend_wordpress.yml --syntax-check
+``` 
+Ejecutar:
+```bash
+ansible-playbook -i hosts.ini frontend_wordpress.yml -K
+```
+Cuando pida:
+
+BECOME password:
+
+poner la contraseña sudo de los frontends.
+
+Si las claves SSH no están copiadas:
+
+ansible-playbook -i hosts.ini frontend_wordpress.yml -k -K
+
+
+## 5. Resultado esperado
+
+Al final debe aparecer:
+
+frontend1 : failed=0
+frontend2 : failed=0
+
+También debe aparecer en la comprobación de base de datos:
+
+wordpress_db
+
+## 6. Comprobar WordPress desde jumpstart
+
+Desde jumpstart:
+```bash
+curl -I http://10.0.0.10
+curl -I http://10.0.0.11
+``` 
+Resultado esperado:
+
+HTTP/1.1 302 Found
+Location: http://10.0.0.10/wp-admin/install.php
+
+y:
+
+HTTP/1.1 302 Found
+Location: http://10.0.0.11/wp-admin/install.php
+
+Esto indica que WordPress está desplegado y redirige al instalador inicial.
+
+## 7. Comprobar Apache y WordPress dentro de cada frontend
+
+Para frontend1:
+```bash
+ssh <USUARIO_VM>@10.0.0.10
+systemctl status apache2 --no-pager
+ls -l /var/www/html/wp-config.php
+curl -I http://localhost
+exit
+``` 
+Para frontend2:
+```bash
+ssh <USUARIO_VM>@10.0.0.11
+systemctl status apache2 --no-pager
+ls -l /var/www/html/wp-config.php
+curl -I http://localhost
+exit
+``` 
+Debe aparecer:
+
+apache2 active (running)
+wp-config.php existe
+HTTP/1.1 302 Found
+Location: http://localhost/wp-admin/install.php
+
+
