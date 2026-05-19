@@ -1385,3 +1385,64 @@ HTTP/1.1 302 Found
 Location: http://localhost/wp-admin/install.php
 
 
+## 9. Ver WordPress desde el navegador del PC anfitrión
+
+Como frontend1 y frontend2 están en la red interna main de VirtualBox, aunque puedan salir a Internet mediante NAT, el PC anfitrión normalmente no puede acceder directamente a sus IPs internas 10.0.0.10 y 10.0.0.11 desde el navegador.
+
+Para ver WordPress desde el navegador del PC anfitrión, se usa un túnel SSH a través de jumpstart.
+
+### Frontend1
+
+En una terminal del PC anfitrión:
+
+```bash
+ssh -p 2225 -L 8081:10.0.0.10:80 <USUARIO_VM>@127.0.0.1
+``` 
+Ejemplo:
+
+ssh -p 2225 -L 8081:10.0.0.10:80 alejandroro@127.0.0.1
+
+Dejar esa terminal abierta.
+
+En el navegador del PC anfitrión abrir:
+
+http://127.0.0.1:8081
+
+Debe aparecer el instalador de WordPress.
+
+Frontend2
+
+En otra terminal del PC anfitrión:
+
+ssh -p 2225 -L 8082:10.0.0.11:80 <USUARIO_VM>@127.0.0.1
+
+Ejemplo:
+
+ssh -p 2225 -L 8082:10.0.0.11:80 alejandroro@127.0.0.1
+
+Dejar esa terminal abierta.
+
+En el navegador del PC anfitrión abrir:
+
+http://127.0.0.1:8082
+
+Debe aparecer el instalador de WordPress.
+
+## 10. Nota importante
+
+En algunas guías puede aparecer:
+
+DB_NAME=wordpress
+DB_USER=wpuser
+DB_PASSWORD=password
+
+Pero en nuestro despliegue de Galera la base de datos creada es:
+
+DB_NAME=wordpress_db
+DB_USER=wordpress_user
+DB_PASSWORD=wordpress_pass
+DB_HOST=10.10.10.20
+
+Por eso el playbook frontend_wordpress.yml usa esos datos. Si se usan otros, WordPress no conectará correctamente con la base de datos.
+
+
