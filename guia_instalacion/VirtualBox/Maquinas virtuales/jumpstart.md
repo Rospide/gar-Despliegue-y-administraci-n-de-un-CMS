@@ -1446,3 +1446,260 @@ DB_HOST=10.10.10.20
 Por eso el playbook frontend_wordpress.yml usa esos datos. Si se usan otros, WordPress no conectará correctamente con la base de datos.
 
 
+## Parte de Zabbix
+
+Esta parte se hace al final, cuando ya están creadas y configuradas todas las máquinas:
+
+```text
+frontend1
+frontend2
+backend1
+backend2
+jumpstart
+router-linux
+balanceador
+``` 
+
+
+## 1. Copiar archivos de Zabbix a jumpstart
+
+Desde el PC anfitrión, estando en la carpeta donde están los scripts:
+
+cd ~/Escritorio/TRABAJO_GAR
+
+Copiar los playbooks de Zabbix a jumpstart:
+```bash
+scp -P 2225 zabbix_server_backend1.yml zabbix_agents.yml <USUARIO_VM>@127.0.0.1:~/
+```  
+Ejemplo:
+
+scp -P 2225 zabbix_server_backend1.yml zabbix_agents.yml alejandroro@127.0.0.1:~/
+
+
+## 2. Entrar en jumpstart
+
+Desde el PC anfitrión:
+```bash
+ssh -p 2225 <USUARIO_VM>@127.0.0.1
+``` 
+Ejemplo:
+
+ssh -p 2225 alejandroro@127.0.0.1
+## 3. Comprobar que hosts.ini tiene todos los nodos
+
+Dentro de jumpstart:
+```bash
+cat hosts.ini
+``` 
+Debe aparecer algo parecido a:
+
+[frontends]
+frontend1 ansible_host=10.0.0.10
+frontend2 ansible_host=10.0.0.11
+
+[backends]
+backend1 ansible_host=10.10.10.20
+backend2 ansible_host=10.10.10.21
+
+[infra]
+balanceador ansible_host=10.0.0.1
+router-linux ansible_host=10.0.0.254
+
+[zabbix_server]
+backend1 ansible_host=10.10.10.20
+
+[zabbix_agent_nodes]
+frontend1 ansible_host=10.0.0.10
+frontend2 ansible_host=10.0.0.11
+backend2 ansible_host=10.10.10.21
+balanceador ansible_host=10.0.0.1
+router-linux ansible_host=10.0.0.254
+
+[all:vars]
+ansible_user=<USUARIO_VM>
+ansible_ssh_private_key_file=/home/<USUARIO_VM>/.ssh/id_ed25519
+ansible_python_interpreter=/usr/bin/python3
+
+Si no aparece así, volver a ejecutar:
+
+./preparar_ansible.sh <USUARIO_VM>
+
+Ejemplo:
+
+./preparar_ansible.sh alejandroro
+## 4. Comprobar conexión Ansible con todos los nodos
+
+Desde jumpstart:
+```bash
+ansible -i hosts.ini all -m ping
+``` 
+Resultado esperado:
+
+frontend1 | SUCCESS
+frontend2 | SUCCESS
+backend1 | SUCCESS
+backend2 | SUCCESS
+balanceador | SUCCESS
+router-linux | SUCCESS
+
+Si alguno falla, revisar que la máquina esté encendida y que tenga la IP correcta.
+
+## 5. Desplegar Zabbix Server en backend1
+
+Antes de ejecutar este paso, backend1 debe tener el adaptador solo anfitrión vboxnet0.
+
+Desde jumpstart:
+```bash
+ansible-playbook -i hosts.ini zabbix_server_backend1.yml -K
+``` 
+Cuando pida:
+
+BECOME password:
+
+poner la contraseña del usuario de las VMs.
+
+Este playbook automatiza:
+
+Configurar IP host-only 192.168.56.20 en backend1
+Instalar apt-cacher-ng en jumpstart
+Configurar backend1 para usar jumpstart como proxy APT
+Instalar Zabbix Server en backend1
+Crear la base de datos zabbix
+Importar el esquema de Zabbix
+Configurar DBPassword=zabbix
+Configurar AllowUnsupportedDBVersions=1
+Crear la configuración web de Zabbix
+Arrancar zabbix-server, zabbix-agent y apache2
+6. Comprobar acceso a Zabbix desde el PC anfitrión
+
+Desde el PC anfitrión:
+```bash
+ping -c 3 192.168.56.20
+``` 
+Si responde, abrir en el navegador:
+
+http://192.168.56.20/zabbix
+
+Credenciales:
+
+Usuario: Admin
+Contraseña: zabbix
+## 7. Desplegar agentes Zabbix en el resto de nodos
+
+Desde jumpstart:
+```bash
+ansible-playbook -i hosts.ini zabbix_agents.yml -K
+``` 
+Este playbook instala y configura zabbix-agent en:
+
+frontend1
+frontend2
+backend2
+balanceador
+router-linux
+
+Todos los agentes apuntan al servidor Zabbix:
+
+10.10.10.20
+## 8. Comprobar conectividad de los agentes
+
+Desde jumpstart, entrar en backend1:
+```bash
+ssh <USUARIO_VM>@10.10.10.20
+``` 
+Ejemplo:
+
+ssh alejandroro@10.10.10.20
+
+Dentro de backend1:
+
+nc -vz 10.0.0.10 10050
+nc -vz 10.0.0.11 10050
+nc -vz 10.10.10.21 10050
+nc -vz 10.0.0.1 10050
+nc -vz 10.0.0.254 10050
+
+Resultado esperado en todos:
+
+succeeded
+
+Salir:
+```bash
+exit
+``` 
+## 9. Añadir equipos en la web de Zabbix
+
+Entrar en:
+
+http://192.168.56.20/zabbix
+
+Ir a:
+
+Configuración -> Equipos -> Crear equipo
+
+Crear los siguientes equipos:
+
+frontend1      10.0.0.10
+frontend2      10.0.0.11
+backend1       10.10.10.20
+backend2       10.10.10.21
+balanceador    10.0.0.1
+router-linux   10.0.0.254
+
+En todos poner:
+
+Grupo: Linux servers
+Interfaz: Agente
+Puerto: 10050
+Plantilla: Linux by Zabbix agent
+
+Si no aparece exactamente esa plantilla, usar:
+
+Linux generic by Zabbix agent
+## 10. Comprobar métricas
+
+En la web de Zabbix ir a:
+
+Monitorización -> Datos más recientes
+
+Filtrar por cada equipo.
+
+Deben aparecer métricas como:
+
+CPU
+memoria
+disco
+red
+procesos
+carga del sistema
+uptime
+
+Esto cumple el requisito de monitorizar los nodos para obtener lecturas de CPU, memoria, disco y red.
+
+11. Comprobación final del servidor Zabbix
+
+En backend1:
+
+sudo systemctl status zabbix-server --no-pager
+sudo systemctl status zabbix-agent --no-pager
+sudo systemctl status apache2 --no-pager
+
+Debe aparecer:
+
+active (running)
+
+También comprobar:
+
+curl -I http://localhost/zabbix
+
+Resultado esperado:
+
+HTTP/1.1 301 Moved Permanently
+
+o:
+
+HTTP/1.1 200 OK
+
+Así queda mucho más limpio: la guía de jumpstart llega hasta su configuración normal, Galera y WordPress siguen en sus apartados, y al final pones una sección independiente llamada **Parte de Zabbix**.
+
+
