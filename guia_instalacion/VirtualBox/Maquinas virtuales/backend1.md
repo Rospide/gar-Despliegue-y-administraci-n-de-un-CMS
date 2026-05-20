@@ -98,3 +98,26 @@ backend1 → backend2
 10.10.10.20 → 10.10.10.21
 
 El mismo script configurar_backend_red.sh sirve para los dos.
+
+
+## 6. Adaptador solo anfitrión para backend1
+
+
+Desde el PC anfitrión:
+```bash
+VBoxManage controlvm backend1 poweroff 2>/dev/null || true
+VBoxManage modifyvm backend1 --nic2 hostonly
+VBoxManage modifyvm backend1 --hostonlyadapter2 vboxnet0
+VBoxManage startvm backend1 --type gui
+``` 
+Luego, cuando ejecutes zabbix_server_backend1.yml, él mismo configurará dentro de backend1:
+
+enp0s8 -> 192.168.56.20/24
+
+Para comprobar desde el PC:
+
+ping -c 3 192.168.56.20
+
+Y Zabbix quedará accesible en:
+
+http://192.168.56.20/zabbix
