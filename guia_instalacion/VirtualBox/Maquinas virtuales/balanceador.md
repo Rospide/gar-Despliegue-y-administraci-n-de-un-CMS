@@ -379,6 +379,9 @@ HTTP/1.1 302 Found
 Location: http://10.0.0.11/wp-admin/install.php
 ```
 
+
+AHORA DARA MAL PORQUE AUN NO ESTA LO DE WORDPRESS
+
 ## 9. Comprobar el balanceador
 ```bash
 curl -I http://localhost
