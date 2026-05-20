@@ -17,6 +17,10 @@ Ir a configuración y luego a red
 - Tipo: **Red interna**
 - Nombre: **internal**
 
+### Adaptador 1
+- Tipo: **Adaptador sólo anfitrión**
+- Nombre: **vboxnet0**
+
 ## 3. Configurar IP fija
 
 Dentro de la VM:
@@ -36,6 +40,8 @@ network:
       routes:
         - to: 10.0.0.0/24
           via: 10.10.10.100
+    enp0s8:
+      dhcp4: true
 ```
 
 ## 4. Aplicar configuración
