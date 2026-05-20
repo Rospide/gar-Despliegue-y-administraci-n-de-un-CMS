@@ -1612,13 +1612,13 @@ Ejemplo:
 ssh alejandroro@10.10.10.20
 
 Dentro de backend1:
-
+```bash
 nc -vz 10.0.0.10 10050
 nc -vz 10.0.0.11 10050
 nc -vz 10.10.10.21 10050
 nc -vz 10.0.0.1 10050
 nc -vz 10.0.0.254 10050
-
+``` 
 Resultado esperado en todos:
 
 succeeded
