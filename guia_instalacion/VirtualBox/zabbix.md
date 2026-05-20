@@ -247,7 +247,7 @@ sudo ufw status
 
 ### 2.12 Verificación desde `backend1`
 
-Antes de verificar conectividad:
+Antes de verificar conectividad, ejecutar en jumpstart:
 
 ```bash
 sudo ufw status verbose
