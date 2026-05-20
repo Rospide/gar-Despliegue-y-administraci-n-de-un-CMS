@@ -177,7 +177,7 @@ sudo ufw reload
 Acceder desde el navegador del host a:
 
 ```text
-http://<IP_enp0s9>/zabbix
+http://<IP_enp0s8>/zabbix
 ```
 
 ### 2.8 Completar instalación web
