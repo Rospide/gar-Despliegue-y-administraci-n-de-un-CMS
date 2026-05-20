@@ -121,3 +121,45 @@ ping -c 3 192.168.56.20
 Y Zabbix quedará accesible en:
 
 http://192.168.56.20/zabbix
+
+## 7. Adaptador solo anfitrión para Zabbix
+
+Backend1 tiene un segundo adaptador:
+
+Adaptador 2: Solo anfitrión vboxnet0
+IP futura: 192.168.56.20/24
+
+Esta IP no se configura ahora manualmente.
+
+Se configurará automáticamente más adelante desde jumpstart con:
+
+zabbix_server_backend1.yml
+
+Ese playbook creará:
+
+/etc/netplan/02-hostonly.yaml
+
+con la IP:
+
+192.168.56.20/24
+## 8. Comprobación después de instalar Zabbix
+
+Cuando se ejecute el playbook de Zabbix, comprobar en backend1:
+
+ip -br a
+ip route
+
+Debe aparecer:
+
+enp0s3 -> 10.10.10.20/24
+enp0s8 -> 192.168.56.20/24
+
+Y en ip route no debe aparecer una ruta default por 192.168.56.X.
+
+Desde el PC anfitrión:
+
+ping -c 3 192.168.56.20
+
+Si responde, la web de Zabbix será accesible desde:
+
+http://192.168.56.20/zabbix
