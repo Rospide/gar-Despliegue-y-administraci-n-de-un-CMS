@@ -1,0 +1,48 @@
+---
+- name: Limpiar MariaDB Galera de backend1 y backend2
+  hosts: backends
+  become: yes
+
+  tasks:
+    - name: Parar MariaDB
+      shell: |
+        systemctl stop mariadb || true
+        killall -9 mysqld || true
+        killall -9 mariadbd || true
+      ignore_errors: yes
+
+    - name: Purgar paquetes MariaDB y Galera
+      shell: |
+        DEBIAN_FRONTEND=noninteractive apt-get purge -y \
+          mariadb-server \
+          mariadb-client \
+          mariadb-common \
+          galera-3 \
+          socat \
+          tinyca || true
+
+        DEBIAN_FRONTEND=noninteractive apt-get autoremove -y || true
+        DEBIAN_FRONTEND=noninteractive apt-get autoclean -y || true
+      ignore_errors: yes
+
+    - name: Borrar datos y configuración de MariaDB
+      shell: |
+        rm -rf /var/lib/mysql
+        rm -rf /etc/mysql
+        rm -rf /tmp/mariadb_repo
+        rm -f /etc/apt/sources.list.d/mariadb-local.list
+      ignore_errors: yes
+
+    - name: Limpiar bloqueos de apt/dpkg
+      shell: |
+        systemctl stop apt-daily.service apt-daily-upgrade.service 2>/dev/null || true
+        systemctl kill --kill-who=all apt-daily.service apt-daily-upgrade.service 2>/dev/null || true
+        killall -9 apt apt-get dpkg unattended-upgrade 2>/dev/null || true
+
+        rm -f /var/lib/dpkg/lock-frontend
+        rm -f /var/lib/dpkg/lock
+        rm -f /var/cache/apt/archives/lock
+        rm -f /var/lib/apt/lists/lock
+
+        dpkg --configure -a || true
+      ignore_errors: yes
