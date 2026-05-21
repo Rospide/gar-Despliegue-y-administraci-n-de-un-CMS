@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ $# -lt 1 || $# -gt 1 ]]; then
+  echo "Uso: sudo ./configurar_router_linux.sh <hostname>"
+  echo "Ejemplo: sudo ./configurar_router_linux.sh router-linux"
+  exit 1
+fi
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "Este script debe ejecutarse con sudo."
+  exit 1
+fi
+
+HOSTNAME_VALUE="$1"
+
+NAT_IFACE="enp0s3"
+MAIN_IFACE="enp0s8"
+INTERNAL_IFACE="enp0s9"
+
+MAIN_IP="10.0.0.254"
+INTERNAL_IP="10.10.10.254"
+
+VIP_MAIN="10.0.0.100"
+VIP_INTERNAL="10.10.10.100"
+
+backup_netplan() {
+  BACKUP_DIR="/etc/netplan/backup-$(date +%Y%m%d-%H%M%S)"
+  mkdir -p "${BACKUP_DIR}"
+
+  if ls /etc/netplan/*.yaml >/dev/null 2>&1; then
+    cp -a /etc/netplan/*.yaml "${BACKUP_DIR}/"
+  fi
+
+  echo "Backup de netplan guardado en: ${BACKUP_DIR}"
+}
+
+backup_keepalived() {
+  BACKUP_DIR="/etc/keepalived/backup-$(date +%Y%m%d-%H%M%S)"
+  mkdir -p "${BACKUP_DIR}"
+
+  if [[ -f /etc/keepalived/keepalived.conf ]]; then
+    cp -a /etc/keepalived/keepalived.conf "${BACKUP_DIR}/keepalived.conf"
+  fi
+
+  echo "Backup de keepalived guardado en: ${BACKUP_DIR}"
+}
+
+set_hostname() {
+  hostnamectl set-hostname "${HOSTNAME_VALUE}"
+
+  if grep -q "^127.0.1.1" /etc/hosts; then
+    sed -i "s/^127.0.1.1.*/127.0.1.1 ${HOSTNAME_VALUE}/" /etc/hosts
+  else
+    echo "127.0.1.1 ${HOSTNAME_VALUE}" >> /etc/hosts
+  fi
+}
+
+write_netplan() {
+  cat > /etc/netplan/00-installer-config.yaml <<EOF
+network:
+  version: 2
+  ethernets:
+    ${NAT_IFACE}:
+      dhcp4: true
+
+    ${MAIN_IFACE}:
+      dhcp4: false
+      addresses:
+        - ${MAIN_IP}/24
+
+    ${INTERNAL_IFACE}:
+      dhcp4: false
+      addresses:
+        - ${INTERNAL_IP}/24
+EOF
+}
+
+enable_forwarding() {
+  if grep -q "^#net.ipv4.ip_forward=1" /etc/sysctl.conf; then
+    sed -i "s/^#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/" /etc/sysctl.conf
+  elif grep -q "^net.ipv4.ip_forward=1" /etc/sysctl.conf; then
+    true
+  else
+    echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+  fi
+
+  sysctl -p
+}
+
+install_packages() {
+  apt update
+  apt install keepalived -y
+}
+
+configure_keepalived() {
+  mkdir -p /etc/keepalived
+
+  cat > /etc/keepalived/keepalived.conf <<EOF
+vrrp_instance VI_MAIN {
+    state BACKUP
+    interface ${MAIN_IFACE}
+    virtual_router_id 51
+    priority 50
+    advert_int 1
+
+    virtual_ipaddress {
+        ${VIP_MAIN}
+    }
+}
+
+vrrp_instance VI_INTERNAL {
+    state BACKUP
+    interface ${INTERNAL_IFACE}
+    virtual_router_id 52
+    priority 50
+    advert_int 1
+
+    virtual_ipaddress {
+        ${VIP_INTERNAL}
+    }
+}
+EOF
+
+  systemctl unmask keepalived || true
+  systemctl enable keepalived
+  systemctl restart keepalived
+}
+
+print_summary() {
+  echo
+  echo "Configuración aplicada en Router-Linux:"
+  echo "- Hostname: ${HOSTNAME_VALUE}"
+  echo "- NAT: ${NAT_IFACE} DHCP"
+  echo "- Main: ${MAIN_IFACE} ${MAIN_IP}/24"
+  echo "- Internal: ${INTERNAL_IFACE} ${INTERNAL_IP}/24"
+  echo "- VIP main backup: ${VIP_MAIN}"
+  echo "- VIP internal backup: ${VIP_INTERNAL}"
+  echo "- Keepalived configurado como BACKUP"
+  echo "- Forwarding activado"
+  echo
+
+  echo "IPs:"
+  ip a
+
+  echo
+  echo "Rutas:"
+  ip route
+
+  echo
+  echo "Forwarding:"
+  cat /proc/sys/net/ipv4/ip_forward
+
+  echo
+  echo "Keepalived:"
+  systemctl --no-pager --full status keepalived | head -n 20 || true
+}
+
+echo "[1/8] Haciendo backup de netplan..."
+backup_netplan
+
+echo "[2/8] Configurando hostname..."
+set_hostname
+
+echo "[3/8] Escribiendo netplan..."
+write_netplan
+
+echo "[4/8] Aplicando netplan..."
+netplan generate
+netplan apply
+
+echo "[5/8] Activando forwarding..."
+enable_forwarding
+
+echo "[6/8] Instalando keepalived..."
+install_packages
+
+echo "[7/8] Configurando keepalived..."
+backup_keepalived
+configure_keepalived
+
+echo "[8/8] Mostrando resumen..."
+print_summary
