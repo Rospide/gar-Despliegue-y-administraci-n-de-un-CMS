@@ -1,66 +1,295 @@
 ---
-- name: Instalacion de  MariaDB Galera Offline
+- name: Instalacion de MariaDB Galera Offline
   hosts: backends
   become: yes
+  any_errors_fatal: true
+
+  vars:
+    local_user: "{{ lookup('env', 'USER') }}"
+    local_repo_path: "/home/{{ local_user }}/mariadb_offline"
+    local_template_path: "/home/{{ local_user }}/template/60-galera.cnf.j2"
+
+    db_name: wordpress_db
+    db_user: wordpress_user
+    db_pass: wordpress_pass
+
+  pre_tasks:
+
+    - name: Comprobar que existe la carpeta mariadb_offline en jumpstart
+      stat:
+        path: "{{ local_repo_path }}"
+      register: repo_check
+      delegate_to: localhost
+      become: no
+      run_once: true
+
+    - name: Fallar si no existe mariadb_offline
+      fail:
+        msg: "No existe {{ local_repo_path }}. Ejecuta primero preparar_jumpstart.yml"
+      when: not repo_check.stat.exists
+      delegate_to: localhost
+      become: no
+      run_once: true
+
+    - name: Comprobar que existe Packages.gz en jumpstart
+      stat:
+        path: "{{ local_repo_path }}/Packages.gz"
+      register: packages_check
+      delegate_to: localhost
+      become: no
+      run_once: true
+
+    - name: Fallar si no existe Packages.gz
+      fail:
+        msg: "No existe {{ local_repo_path }}/Packages.gz. Ejecuta primero preparar_jumpstart.yml"
+      when: not packages_check.stat.exists
+      delegate_to: localhost
+      become: no
+      run_once: true
+
+    - name: Comprobar que existe la plantilla Galera en jumpstart
+      stat:
+        path: "{{ local_template_path }}"
+      register: template_check
+      delegate_to: localhost
+      become: no
+      run_once: true
+
+    - name: Fallar si no existe la plantilla Galera
+      fail:
+        msg: "No existe {{ local_template_path }}. Ejecuta primero preparar_jumpstart.yml"
+      when: not template_check.stat.exists
+      delegate_to: localhost
+      become: no
+      run_once: true
+
   tasks:
-    - name: 1. Crear directorio temporal en backends
-      file:
-        path: /tmp/mariadb_repo
-        state: directory
 
-    - name: 2. Copiar paquetes .deb desde el jumpstart
+    - name: 1. Crear repositorio temporal en backends
+      shell: |
+        rm -rf /tmp/mariadb_repo
+        mkdir -p /tmp/mariadb_repo
+        mkdir -p /etc/mysql/mariadb.conf.d
+
+    - name: 2. Copiar paquetes .deb desde jumpstart a los backends
       copy:
-        src: ~/mariadb_offline/
-        dest: /tmp/mariadb_repo/
+        src: "{{ local_repo_path }}/"
+        dest: "/tmp/mariadb_repo/"
+        owner: root
+        group: root
+        mode: preserve
 
-    - name: 3. Instalar paquetes .deb (Sin Internet)
+    - name: 3. Desactivar repositorios externos
       shell: |
-        dpkg -i /tmp/mariadb_repo/*.deb
+        cp /etc/apt/sources.list /etc/apt/sources.list.bak 2>/dev/null || true
+        sed -i 's/^deb /#deb /g' /etc/apt/sources.list 2>/dev/null || true
+        sed -i 's/^deb-src /#deb-src /g' /etc/apt/sources.list 2>/dev/null || true
+
+        for f in /etc/apt/sources.list.d/*.list; do
+          [ -f "$f" ] && mv "$f" "$f.bak" || true
+        done
+
+    - name: 4. Configurar repositorio local MariaDB offline
+      copy:
+        dest: /etc/apt/sources.list.d/mariadb-local.list
+        content: |
+          deb [trusted=yes] file:/tmp/mariadb_repo ./
+
+    - name: 4.1 Crear estructura base de configuracion MariaDB
+      shell: |
+        mkdir -p /etc/mysql/conf.d
+        mkdir -p /etc/mysql/mariadb.conf.d
+
+    - name: 4.2 Crear archivo base mariadb.conf si no existe
+      copy:
+        dest: /etc/mysql/mariadb.cnf
+        force: no
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [client-server]
+          !includedir /etc/mysql/conf.d/
+          !includedir /etc/mysql/mariadb.conf.d/
+
+    - name: 4.9 Limpiar bloqueos antiguos de apt/dpkg
+      shell: |
+        systemctl stop apt-daily.service apt-daily-upgrade.service 2>/dev/null || true
+        systemctl kill --kill-who=all apt-daily.service apt-daily-upgrade.service 2>/dev/null || true
+
+        killall -9 apt apt-get dpkg unattended-upgrade 2>/dev/null || true
+
+        rm -f /var/lib/dpkg/lock-frontend
+        rm -f /var/lib/dpkg/lock
+        rm -f /var/cache/apt/archives/lock
+        rm -f /var/lib/apt/lists/lock
+
+        DEBIAN_FRONTEND=noninteractive dpkg --force-confdef --force-confold --configure -a || true
       ignore_errors: yes
-      
-    - name: 4. Arreglar dependencias y configurar dpkg
+
+    - name: 5. Actualizar cache APT usando repositorio local
       shell: |
-       dpkg --configure -a
-       apt-get install -y -f
+        apt-get update
 
-    - name: 4.5 Abrir puertos de Galera en el Firewall (UFW)
-      shell: "ufw allow 3306/tcp && ufw allow 4567/tcp && ufw allow 4568/tcp && ufw allow 4444/tcp && ufw --force enable"
-      ignore_errors: yes 
+    - name: 6. Reparar paquetes pendientes usando repositorio local
+      shell: |
+        mkdir -p /etc/mysql/mariadb.conf.d
 
-    - name: 5. Aplicar la plantilla de Galera
+        DEBIAN_FRONTEND=noninteractive apt-get install -y \
+          -o Dpkg::Options::="--force-confdef" \
+          -o Dpkg::Options::="--force-confold" \
+          mariadb-common || true
+
+        DEBIAN_FRONTEND=noninteractive apt-get install -y -f \
+          -o Dpkg::Options::="--force-confdef" \
+          -o Dpkg::Options::="--force-confold" || true
+
+        DEBIAN_FRONTEND=noninteractive dpkg \
+          --force-confdef \
+          --force-confold \
+          --configure -a || true
+      ignore_errors: yes
+
+    - name: 6.0 Instalar primero liburi-perl
+      shell: |
+        dpkg -i /tmp/mariadb_repo/liburi-perl*.deb || true
+        dpkg --force-confdef --force-confold --configure liburi-perl || true
+
+    - name: 6.1 Instalar dependencias Perl necesarias para MariaDB
+      shell: |
+        DEBIAN_FRONTEND=noninteractive apt-get install -y \
+          -o Dpkg::Options::="--force-confdef" \
+          -o Dpkg::Options::="--force-confold" \
+          perl \
+          libhtml-parser-perl \
+          libhttp-message-perl \
+          libcgi-pm-perl \
+          libhtml-template-perl \
+          libcgi-fast-perl \
+          libio-html-perl \
+          liblwp-mediatypes-perl \
+          libencode-locale-perl \
+          libhttp-date-perl
+
+    - name: 6.2 Configurar paquetes pendientes despues de Perl
+      shell: |
+        DEBIAN_FRONTEND=noninteractive dpkg \
+          --force-confdef \
+          --force-confold \
+          --configure -a
+
+    - name: 7. Instalar MariaDB Galera offline
+      shell: |
+        DEBIAN_FRONTEND=noninteractive apt-get install -y \
+          -o Dpkg::Options::="--force-confdef" \
+          -o Dpkg::Options::="--force-confold" \
+          mariadb-server mariadb-client galera-3 socat tinyca
+
+    - name: 8. Abrir puertos de Galera en UFW
+      shell: |
+        ufw allow 3306/tcp || true
+        ufw allow 4567/tcp || true
+        ufw allow 4568/tcp || true
+        ufw allow 4444/tcp || true
+      ignore_errors: yes
+
+    - name: 9. Aplicar configuración de Galera
       template:
-       src: ~/template/60-galera.cnf.j2
-       dest: /etc/mysql/mariadb.conf.d/60-galera.cnf
+        src: "{{ local_template_path }}"
+        dest: "/etc/mysql/mariadb.conf.d/60-galera.cnf"
+        owner: root
+        group: root
+        mode: '0644'
 
-    - name: 6. Configurar acceso externo (0.0.0.0)
-      lineinfile:
-        path: /etc/mysql/mariadb.conf.d/50-server.cnf
-        regexp: '^bind-address'
-        line: 'bind-address = 0.0.0.0'
+    - name: 9.1 Limpiar bind-address
+      shell: |
+        sed -i "s/^\^bind-address/bind-address/g" /etc/mysql/mariadb.conf.d/*.cnf 2>/dev/null || true
 
-    - name: 7. Asegurar que MariaDB esté preparado antes de empezar el cluster
+    - name: 10. Configurar acceso externo 0.0.0.0
+      copy:
+        dest: /etc/mysql/mariadb.conf.d/99-bind-address.cnf
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          [mysqld]
+          bind-address = 0.0.0.0
+
+    - name: 11. Parar MariaDB antes de iniciar el cluster
       shell: |
         systemctl stop mariadb || true
         killall -9 mysqld || true
+        killall -9 mariadbd || true
+      ignore_errors: yes
+
+    - name: 12. Marcar backend1 como nodo seguro para bootstrap
+      shell: |
         if [ -f /var/lib/mysql/grastate.dat ]; then
           sed -i 's/safe_to_bootstrap: 0/safe_to_bootstrap: 1/' /var/lib/mysql/grastate.dat
         fi
-      ignore_errors: yes
+      when: inventory_hostname == "backend1"
 
-    - name: 8. BOOTSTRAP - Arrancar el Cluster por primera vez (solo backend1)
+    - name: 12.5 Preparar bootstrap Galera solo en backend1
+      shell: |
+        sed -i 's#wsrep_cluster_address.*#wsrep_cluster_address = "gcomm://"#' /etc/mysql/mariadb.conf.d/60-galera.cnf
+      when: inventory_hostname == "backend1"
+
+    - name: 13. Arrancar cluster Galera en backend1
       command: galera_new_cluster
       when: inventory_hostname == "backend1"
-      
-    - name: 9. UNIR NODOS - Arrancar MariaDB en el resto de nodos
-      service:
-       name: mariadb
-       state: started
-      when: inventory_hostname == "backend2"
- 
-    - name: 10. Crear DB y Usuario (Solo en backend1 y se replicara al 2)
+
+    - name: 14. Esperar a que MariaDB responda en backend1
       shell: |
-       mysql -e "CREATE DATABASE IF NOT EXISTS wordpress_db;"
-       mysql -e "CREATE USER IF NOT EXISTS 'wordpress_user'@'%'IDENTIFIED BY 'wordpress_pass';"
-       mysql -e "GRANT ALL PRIVILEGES ON wordpress_db.* TO 'wordpress_user'@'%';"
-       mysql -e "FLUSH PRIVILEGES;"
+        mysqladmin ping
+      register: mysql_ping_backend1
+      retries: 10
+      delay: 3
+      until: mysql_ping_backend1.rc == 0
+      when: inventory_hostname == "backend1"
+
+    - name: 14.5 Restaurar direccion completa del cluster en backend1
+      shell: |
+        sed -i 's#wsrep_cluster_address.*#wsrep_cluster_address = "gcomm://10.10.10.20,10.10.10.21"#' /etc/mysql/mariadb.conf.d/60-galera.cnf
+      when: inventory_hostname == "backend1"
+
+    - name: 15. Unir backend2 al cluster
+      service:
+        name: mariadb
+        state: started
+      when: inventory_hostname == "backend2"
+
+    - name: 16. Esperar a que MariaDB responda en backend2
+      shell: |
+        mysqladmin ping
+      register: mysql_ping_backend2
+      retries: 10
+      delay: 3
+      until: mysql_ping_backend2.rc == 0
+      when: inventory_hostname == "backend2"
+
+    - name: 17. Esperar estabilizacion del cluster
+      pause:
+        seconds: 10
+
+    - name: 18. Crear base de datos, usuario, password y permisos en backend1
+      shell: |
+        mysql -e "CREATE DATABASE IF NOT EXISTS {{ db_name }};"
+        mysql -e "CREATE USER IF NOT EXISTS '{{ db_user }}'@'%' IDENTIFIED BY '{{ db_pass }}';"
+        mysql -e "GRANT ALL PRIVILEGES ON {{ db_name }}.* TO '{{ db_user }}'@'%';"
+        mysql -e "FLUSH PRIVILEGES;"
+      when: inventory_hostname == "backend1"
+
+    - name: 19. Comprobar cluster y base de datos en backend1
+      shell: |
+        mysql -e "SHOW STATUS LIKE 'wsrep_cluster_size';"
+        mysql -e "SHOW STATUS LIKE 'wsrep_cluster_status';"
+        mysql -e "SHOW STATUS LIKE 'wsrep_ready';"
+        mysql -e "SHOW DATABASES LIKE '{{ db_name }}';"
+        mysql -e "SELECT user, host FROM mysql.user WHERE user='{{ db_user }}';"
+      register: cluster_check
+      when: inventory_hostname == "backend1"
+
+    - name: 20. Mostrar comprobación final
+      debug:
+        var: cluster_check.stdout_lines
       when: inventory_hostname == "backend1"
