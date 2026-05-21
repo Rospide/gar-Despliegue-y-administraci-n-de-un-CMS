@@ -1,0 +1,29 @@
+---
+- name: Limpiar bloqueos de APT en backends
+  hosts: backends
+  become: yes
+
+  tasks:
+    - name: Parar servicios automáticos de apt
+      shell: |
+        systemctl stop apt-daily.service apt-daily-upgrade.service 2>/dev/null || true
+        systemctl kill --kill-who=all apt-daily.service apt-daily-upgrade.service 2>/dev/null || true
+      ignore_errors: yes
+
+    - name: Matar procesos apt/dpkg bloqueados
+      shell: |
+        killall -9 apt apt-get dpkg unattended-upgrade 2>/dev/null || true
+      ignore_errors: yes
+
+    - name: Eliminar locks de apt/dpkg
+      shell: |
+        rm -f /var/lib/dpkg/lock-frontend
+        rm -f /var/lib/dpkg/lock
+        rm -f /var/cache/apt/archives/lock
+        rm -f /var/lib/apt/lists/lock
+      ignore_errors: yes
+
+    - name: Reconfigurar dpkg
+      shell: |
+        dpkg --configure -a || true
+      ignore_errors: yes
