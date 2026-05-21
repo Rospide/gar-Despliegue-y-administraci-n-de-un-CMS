@@ -1,0 +1,146 @@
+---
+- name: Desplegar WordPress en frontend1 y frontend2
+  hosts: frontends
+  become: yes
+
+  vars:
+    wp_db_name: wordpress_db
+    wp_db_user: wordpress_user
+    wp_db_pass: wordpress_pass
+    wp_db_host: 10.10.10.20
+
+    wp_download_url: https://wordpress.org/latest.tar.gz
+    wp_local_tar: /tmp/wordpress-latest.tar.gz
+    wp_web_root: /var/www/html
+
+  pre_tasks:
+    - name: Descargar WordPress en jumpstart
+      get_url:
+        url: "{{ wp_download_url }}"
+        dest: "{{ wp_local_tar }}"
+        mode: "0644"
+      delegate_to: localhost
+      become: no
+      run_once: true
+
+  tasks:
+    - name: Instalar Apache, PHP y cliente MySQL
+      apt:
+        name:
+          - apache2
+          - php
+          - libapache2-mod-php
+          - php-mysql
+          - php-curl
+          - php-gd
+          - php-mbstring
+          - php-xml
+          - php-xmlrpc
+          - php-soap
+          - php-intl
+          - php-zip
+          - unzip
+          - tar
+          - mysql-client
+        state: present
+        update_cache: yes
+
+    - name: Activar Apache al arrancar
+      systemd:
+        name: apache2
+        enabled: yes
+        state: started
+
+    - name: Limpiar instalación web anterior
+      shell: |
+        rm -rf {{ wp_web_root }}/*
+        rm -rf /tmp/wordpress
+      ignore_errors: yes
+
+    - name: Copiar y descomprimir WordPress en frontend
+      unarchive:
+        src: "{{ wp_local_tar }}"
+        dest: /tmp/
+        remote_src: no
+
+    - name: Copiar WordPress a /var/www/html
+      shell: |
+        cp -a /tmp/wordpress/. {{ wp_web_root }}/
+        chown -R www-data:www-data {{ wp_web_root }}
+        find {{ wp_web_root }} -type d -exec chmod 755 {} \;
+        find {{ wp_web_root }} -type f -exec chmod 644 {} \;
+
+    - name: Crear wp-config.php
+      copy:
+        dest: "{{ wp_web_root }}/wp-config.php"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+        content: |
+          <?php
+          define( 'DB_NAME', '{{ wp_db_name }}' );
+          define( 'DB_USER', '{{ wp_db_user }}' );
+          define( 'DB_PASSWORD', '{{ wp_db_pass }}' );
+          define( 'DB_HOST', '{{ wp_db_host }}' );
+          define( 'DB_CHARSET', 'utf8' );
+          define( 'DB_COLLATE', '' );
+
+          define( 'AUTH_KEY',         'proyecto-auth-key' );
+          define( 'SECURE_AUTH_KEY',  'proyecto-secure-auth-key' );
+          define( 'LOGGED_IN_KEY',    'proyecto-logged-in-key' );
+          define( 'NONCE_KEY',        'proyecto-nonce-key' );
+          define( 'AUTH_SALT',        'proyecto-auth-salt' );
+          define( 'SECURE_AUTH_SALT', 'proyecto-secure-auth-salt' );
+          define( 'LOGGED_IN_SALT',   'proyecto-logged-in-salt' );
+          define( 'NONCE_SALT',       'proyecto-nonce-salt' );
+
+          $table_prefix = 'wp_';
+
+          define( 'WP_DEBUG', false );
+
+          if ( ! defined( 'ABSPATH' ) ) {
+              define( 'ABSPATH', __DIR__ . '/' );
+          }
+
+          require_once ABSPATH . 'wp-settings.php';
+
+    - name: Configurar Apache para WordPress
+      copy:
+        dest: /etc/apache2/sites-available/000-default.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          <VirtualHost *:80>
+              ServerAdmin webmaster@localhost
+              DocumentRoot /var/www/html
+
+              <Directory /var/www/html>
+                  AllowOverride All
+                  Require all granted
+              </Directory>
+
+              ErrorLog ${APACHE_LOG_DIR}/error.log
+              CustomLog ${APACHE_LOG_DIR}/access.log combined
+          </VirtualHost>
+
+    - name: Activar mod_rewrite
+      command: a2enmod rewrite
+      register: rewrite_result
+      changed_when: "'Enabling module rewrite' in rewrite_result.stdout or 'To activate the new configuration' in rewrite_result.stdout"
+      failed_when: false
+
+    - name: Reiniciar Apache
+      systemd:
+        name: apache2
+        state: restarted
+
+    - name: Comprobar conexión con la base de datos
+      shell: |
+        mysql -h {{ wp_db_host }} -u {{ wp_db_user }} -p{{ wp_db_pass }} -e "SHOW DATABASES;"
+      register: db_check
+      changed_when: false
+
+    - name: Mostrar resultado de conexión a la base de datos
+      debug:
+        var: db_check.stdout_lines
