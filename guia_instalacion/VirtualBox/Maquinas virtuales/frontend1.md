@@ -18,7 +18,15 @@ chmod +x crear_frontend1.sh
 ./crear_frontend1.sh <alumno>
 ```
 ## 3. Transferir los paquetes
+3 Configurar las redes
 
+Desde el PC anfitrión:
+```bash
+scp -P 2210 configurar_frontend.sh <USUARIO_VM>@127.0.0.1:~/
+``` 
+En tu caso:
+
+scp -P 2210 configurar_frontend.sh alejandroro@127.0.0.1:~/
 Entra por SSH y ejecuta el script:
 ```bash
 ssh -p 2210 <alumno>@127.0.0.1
