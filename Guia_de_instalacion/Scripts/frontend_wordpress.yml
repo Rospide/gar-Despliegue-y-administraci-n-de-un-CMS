@@ -1,0 +1,209 @@
+---
+- name: Desplegar WordPress en frontend1 y frontend2
+  hosts: frontends
+  become: yes
+
+  vars:
+    wp_db_name: wordpress_db
+    wp_db_user: wordpress_user
+    wp_db_pass: wordpress_pass
+    wp_db_host: 10.10.10.20
+
+    wp_download_url: https://wordpress.org/latest.tar.gz
+    wp_local_tar: /tmp/wordpress-latest.tar.gz
+    wp_web_root: /var/www/html
+
+  pre_tasks:
+    - name: Comprobar si WordPress ya esta descargado correctamente en jumpstart
+      shell: |
+        if [ -f "{{ wp_local_tar }}" ]; then
+          tar -tzf "{{ wp_local_tar }}" >/dev/null 2>&1
+        else
+          exit 1
+        fi
+      register: wp_tar_check
+      delegate_to: localhost
+      become: no
+      run_once: true
+      changed_when: false
+      failed_when: false
+
+    - name: Eliminar descarga corrupta de WordPress si existe
+      file:
+        path: "{{ wp_local_tar }}"
+        state: absent
+      delegate_to: localhost
+      become: no
+      run_once: true
+      when: wp_tar_check.rc != 0
+
+    - name: Descargar WordPress en jumpstart con reintentos
+      shell: |
+        wget --tries=5 --timeout=60 -O "{{ wp_local_tar }}" "{{ wp_download_url }}"
+      delegate_to: localhost
+      become: no
+      run_once: true
+      when: wp_tar_check.rc != 0
+
+    - name: Verificar descarga de WordPress
+      shell: |
+        tar -tzf "{{ wp_local_tar }}" >/dev/null
+      delegate_to: localhost
+      become: no
+      run_once: true
+      changed_when: false
+
+  tasks:
+    - name: Detener servicios automaticos de APT
+      shell: |
+        systemctl stop unattended-upgrades 2>/dev/null || true
+        systemctl stop apt-daily.service 2>/dev/null || true
+        systemctl stop apt-daily-upgrade.service 2>/dev/null || true
+        systemctl stop apt-daily.timer 2>/dev/null || true
+        systemctl stop apt-daily-upgrade.timer 2>/dev/null || true
+        systemctl disable apt-daily.timer 2>/dev/null || true
+        systemctl disable apt-daily-upgrade.timer 2>/dev/null || true
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Esperar a que no haya bloqueos de APT
+      shell: |
+        timeout 180 bash -c '
+        while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+              fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+              fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
+          echo "Esperando a que termine apt/dpkg..."
+          sleep 5
+        done
+        ' || true
+      changed_when: false
+
+    - name: Limpiar posibles bloqueos antiguos de APT
+      shell: |
+        rm -f /var/lib/dpkg/lock-frontend
+        rm -f /var/lib/dpkg/lock
+        rm -f /var/cache/apt/archives/lock
+        dpkg --configure -a || true
+        apt clean || true
+      changed_when: false
+
+    - name: Instalar Apache, PHP y cliente MySQL
+      apt:
+        name:
+          - apache2
+          - php
+          - libapache2-mod-php
+          - php-mysql
+          - php-curl
+          - php-gd
+          - php-mbstring
+          - php-xml
+          - php-xmlrpc
+          - php-soap
+          - php-intl
+          - php-zip
+          - unzip
+          - tar
+          - mysql-client
+        state: present
+        update_cache: yes
+
+    - name: Activar Apache al arrancar
+      systemd:
+        name: apache2
+        enabled: yes
+        state: started
+
+    - name: Limpiar instalación web anterior
+      shell: |
+        rm -rf {{ wp_web_root }}/*
+        rm -rf /tmp/wordpress
+      ignore_errors: yes
+
+    - name: Copiar y descomprimir WordPress en frontend
+      unarchive:
+        src: "{{ wp_local_tar }}"
+        dest: /tmp/
+        remote_src: no
+
+    - name: Copiar WordPress a /var/www/html
+      shell: |
+        cp -a /tmp/wordpress/. {{ wp_web_root }}/
+        chown -R www-data:www-data {{ wp_web_root }}
+        find {{ wp_web_root }} -type d -exec chmod 755 {} \;
+        find {{ wp_web_root }} -type f -exec chmod 644 {} \;
+
+    - name: Crear wp-config.php
+      copy:
+        dest: "{{ wp_web_root }}/wp-config.php"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+        content: |
+          <?php
+          define( 'DB_NAME', '{{ wp_db_name }}' );
+          define( 'DB_USER', '{{ wp_db_user }}' );
+          define( 'DB_PASSWORD', '{{ wp_db_pass }}' );
+          define( 'DB_HOST', '{{ wp_db_host }}' );
+          define( 'DB_CHARSET', 'utf8' );
+          define( 'DB_COLLATE', '' );
+
+          define( 'AUTH_KEY',         'proyecto-auth-key' );
+          define( 'SECURE_AUTH_KEY',  'proyecto-secure-auth-key' );
+          define( 'LOGGED_IN_KEY',    'proyecto-logged-in-key' );
+          define( 'NONCE_KEY',        'proyecto-nonce-key' );
+          define( 'AUTH_SALT',        'proyecto-auth-salt' );
+          define( 'SECURE_AUTH_SALT', 'proyecto-secure-auth-salt' );
+          define( 'LOGGED_IN_SALT',   'proyecto-logged-in-salt' );
+          define( 'NONCE_SALT',       'proyecto-nonce-salt' );
+
+          $table_prefix = 'wp_';
+
+          define( 'WP_DEBUG', false );
+
+          if ( ! defined( 'ABSPATH' ) ) {
+              define( 'ABSPATH', __DIR__ . '/' );
+          }
+
+          require_once ABSPATH . 'wp-settings.php';
+
+    - name: Configurar Apache para WordPress
+      copy:
+        dest: /etc/apache2/sites-available/000-default.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          <VirtualHost *:80>
+              ServerAdmin webmaster@localhost
+              DocumentRoot /var/www/html
+
+              <Directory /var/www/html>
+                  AllowOverride All
+                  Require all granted
+              </Directory>
+
+              ErrorLog ${APACHE_LOG_DIR}/error.log
+              CustomLog ${APACHE_LOG_DIR}/access.log combined
+          </VirtualHost>
+
+    - name: Activar mod_rewrite
+      command: a2enmod rewrite
+      register: rewrite_result
+      changed_when: "'Enabling module rewrite' in rewrite_result.stdout or 'To activate the new configuration' in rewrite_result.stdout"
+      failed_when: false
+
+    - name: Reiniciar Apache
+      systemd:
+        name: apache2
+        state: restarted
+
+    - name: Comprobar conexión con la base de datos
+      shell: |
+        mysql -h {{ wp_db_host }} -u {{ wp_db_user }} -p{{ wp_db_pass }} -e "SHOW DATABASES;"
+      register: db_check
+      changed_when: false
+
+    - name: Mostrar resultado de conexión a la base de datos
+      debug:
+        var: db_check.stdout_lines

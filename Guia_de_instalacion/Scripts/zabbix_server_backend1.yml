@@ -1,0 +1,373 @@
+---
+- name: Preparar jumpstart como proxy APT para Zabbix
+  hosts: localhost
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Instalar apt-cacher-ng en jumpstart
+      apt:
+        name: apt-cacher-ng
+        state: present
+        update_cache: yes
+
+    - name: Limpiar cache antigua de apt-cacher-ng
+      shell: |
+        systemctl stop apt-cacher-ng || true
+        rm -rf /var/cache/apt-cacher-ng/*
+        systemctl start apt-cacher-ng
+
+    - name: Activar apt-cacher-ng
+      service:
+        name: apt-cacher-ng
+        state: restarted
+        enabled: yes
+
+    - name: Descargar repositorio Zabbix en jumpstart
+      get_url:
+        url: "https://repo.zabbix.com/zabbix/6.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_6.0+ubuntu20.04_all.deb"
+        dest: "/tmp/zabbix-release_latest_6.0+ubuntu20.04_all.deb"
+        mode: "0644"
+
+
+- name: Instalar y configurar Zabbix Server en backend1
+  hosts: zabbix_server
+  become: yes
+
+  vars:
+    zabbix_db_name: zabbix
+    zabbix_db_user: zabbix
+    zabbix_db_pass: zabbix
+    zabbix_web_ip: "192.168.56.20"
+    zabbix_server_name: "Zabbix-GAR"
+
+  tasks:
+    - name: Configurar IP solo anfitrion para acceso web a Zabbix
+      copy:
+        dest: /etc/netplan/02-hostonly.yaml
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          network:
+            version: 2
+            ethernets:
+              enp0s8:
+                dhcp4: false
+                optional: true
+                addresses:
+                  - {{ zabbix_web_ip }}/24
+
+    - name: Aplicar netplan para host-only
+      shell: |
+        netplan generate
+        netplan apply
+
+    - name: Configurar proxy APT hacia jumpstart
+      copy:
+        dest: /etc/apt/apt.conf.d/01proxy
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          Acquire::http::Proxy "http://10.10.10.10:3142";
+          Acquire::https::Proxy "false";
+
+    - name: Detener servicios automaticos de APT
+      shell: |
+        systemctl stop unattended-upgrades 2>/dev/null || true
+        systemctl stop apt-daily.service 2>/dev/null || true
+        systemctl stop apt-daily-upgrade.service 2>/dev/null || true
+        systemctl stop apt-daily.timer 2>/dev/null || true
+        systemctl stop apt-daily-upgrade.timer 2>/dev/null || true
+        systemctl disable apt-daily.timer 2>/dev/null || true
+        systemctl disable apt-daily-upgrade.timer 2>/dev/null || true
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Esperar a que no haya bloqueos de APT
+      shell: |
+        timeout 60 bash -c '
+        while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+              fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+              fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
+          echo "Esperando a que termine apt/dpkg..."
+          sleep 5
+        done
+        ' || true
+      changed_when: false
+
+    - name: Limpiar posibles bloqueos antiguos de APT
+      shell: |
+        rm -f /var/lib/dpkg/lock-frontend
+        rm -f /var/lib/dpkg/lock
+        rm -f /var/cache/apt/archives/lock
+        dpkg --configure -a || true
+        apt clean || true
+      changed_when: false
+
+    - name: Reactivar repositorios normales de Ubuntu
+      shell: |
+        sed -i 's/^#deb /deb /g' /etc/apt/sources.list || true
+        sed -i 's/^#deb-src /deb-src /g' /etc/apt/sources.list || true
+        rm -f /etc/apt/sources.list.d/mariadb-local.list || true
+
+    - name: Limpiar listas APT antiguas
+      shell: |
+        apt clean
+        rm -rf /var/lib/apt/lists/*
+
+    - name: Copiar paquete de repositorio Zabbix desde jumpstart
+      copy:
+        src: /tmp/zabbix-release_latest_6.0+ubuntu20.04_all.deb
+        dest: /tmp/zabbix-release_latest_6.0+ubuntu20.04_all.deb
+        mode: "0644"
+
+    - name: Instalar repositorio Zabbix
+      apt:
+        deb: /tmp/zabbix-release_latest_6.0+ubuntu20.04_all.deb
+
+    - name: Cambiar repositorio Zabbix de HTTPS a HTTP
+      shell: |
+        sed -i 's|https://repo.zabbix.com|http://repo.zabbix.com|g' /etc/apt/sources.list.d/zabbix.list || true
+
+    - name: Desactivar repositorio innecesario zabbix-agent2-plugins
+      shell: |
+        mv /etc/apt/sources.list.d/zabbix-agent2-plugins.list /etc/apt/sources.list.d/zabbix-agent2-plugins.list.disabled 2>/dev/null || true
+        sed -i 's|^deb .*zabbix-agent2-plugins|#&|g' /etc/apt/sources.list.d/*.list 2>/dev/null || true
+        sed -i 's|^deb-src .*zabbix-agent2-plugins|#&|g' /etc/apt/sources.list.d/*.list 2>/dev/null || true
+
+    - name: Actualizar cache APT
+      shell: |
+        apt clean
+        rm -rf /var/lib/apt/lists/*
+        apt update
+
+    - name: Instalar paquetes base para Zabbix
+      apt:
+        name:
+          - apache2
+          - php
+          - php-mysql
+          - netcat-openbsd
+          - locales
+        state: present
+
+    - name: Instalar paquetes de Zabbix
+      apt:
+        name:
+          - zabbix-server-mysql
+          - zabbix-frontend-php
+          - zabbix-sql-scripts
+          - zabbix-agent
+        state: latest
+        update_cache: yes
+
+    - name: Comprobar que existe algun esquema SQL de Zabbix
+      shell: |
+        find /usr/share /usr/share/doc -iname "*.sql.gz" | grep -i zabbix || true
+      register: zabbix_sql_files
+      changed_when: false
+
+    - name: Mostrar esquemas SQL encontrados
+      debug:
+        var: zabbix_sql_files.stdout_lines
+
+    - name: Comprobar MariaDB/Galera activo
+      shell: |
+        mysqladmin ping
+        mysql -e "SHOW STATUS LIKE 'wsrep_ready';"
+      changed_when: false
+
+    - name: Crear usuario y base de datos Zabbix si no existen
+      shell: |
+        mysql -e "CREATE DATABASE IF NOT EXISTS {{ zabbix_db_name }} CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;"
+        mysql -e "CREATE USER IF NOT EXISTS '{{ zabbix_db_user }}'@'localhost' IDENTIFIED BY '{{ zabbix_db_pass }}';"
+        mysql -e "GRANT ALL PRIVILEGES ON {{ zabbix_db_name }}.* TO '{{ zabbix_db_user }}'@'localhost';"
+        mysql -e "FLUSH PRIVILEGES;"
+
+    - name: Comprobar si existe tabla dbversion
+      shell: |
+        mysql -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='{{ zabbix_db_name }}' AND table_name='dbversion';"
+      register: zabbix_schema
+      changed_when: false
+
+    - name: Limpiar base de datos Zabbix si el esquema no existe
+      shell: |
+        mysql -e "DROP DATABASE IF EXISTS {{ zabbix_db_name }};"
+        mysql -e "CREATE DATABASE {{ zabbix_db_name }} CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;"
+        mysql -e "DROP USER IF EXISTS '{{ zabbix_db_user }}'@'localhost';"
+        mysql -e "CREATE USER '{{ zabbix_db_user }}'@'localhost' IDENTIFIED BY '{{ zabbix_db_pass }}';"
+        mysql -e "GRANT ALL PRIVILEGES ON {{ zabbix_db_name }}.* TO '{{ zabbix_db_user }}'@'localhost';"
+        mysql -e "FLUSH PRIVILEGES;"
+      when: zabbix_schema.stdout | int == 0
+
+    - name: Importar esquema Zabbix segun ruta disponible
+      shell: |
+        set -e
+
+        if [ -f /usr/share/zabbix-sql-scripts/mysql/server.sql.gz ]; then
+          echo "Importando esquema Zabbix desde /usr/share/zabbix-sql-scripts/mysql/server.sql.gz"
+          zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 {{ zabbix_db_name }}
+
+        elif [ -f /usr/share/zabbix-server-mysql/schema.sql.gz ]; then
+          echo "Importando esquema Zabbix desde /usr/share/zabbix-server-mysql/"
+          zcat /usr/share/zabbix-server-mysql/schema.sql.gz | mysql --default-character-set=utf8mb4 {{ zabbix_db_name }}
+          zcat /usr/share/zabbix-server-mysql/images.sql.gz | mysql --default-character-set=utf8mb4 {{ zabbix_db_name }}
+          zcat /usr/share/zabbix-server-mysql/data.sql.gz | mysql --default-character-set=utf8mb4 {{ zabbix_db_name }}
+
+        elif [ -f /usr/share/doc/zabbix-server-mysql/create.sql.gz ]; then
+          echo "Importando esquema Zabbix desde /usr/share/doc/zabbix-server-mysql/create.sql.gz"
+          zcat /usr/share/doc/zabbix-server-mysql/create.sql.gz | mysql --default-character-set=utf8mb4 {{ zabbix_db_name }}
+
+        else
+          echo "ERROR: No se ha encontrado el esquema SQL de Zabbix."
+          find /usr/share /usr/share/doc -iname "*.sql.gz" | grep -i zabbix || true
+          exit 1
+        fi
+      when: zabbix_schema.stdout | int == 0
+
+    - name: Comprobar version de la base de datos Zabbix
+      shell: |
+        mysql -e "SELECT mandatory, optional FROM {{ zabbix_db_name }}.dbversion;"
+      changed_when: false
+
+    - name: Configurar zabbix_server.conf
+      lineinfile:
+        path: /etc/zabbix/zabbix_server.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^#?DBName=', line: 'DBName=zabbix' }
+        - { regexp: '^#?DBUser=', line: 'DBUser=zabbix' }
+        - { regexp: '^#?DBPassword=', line: 'DBPassword=zabbix' }
+        - { regexp: '^#?AllowUnsupportedDBVersions=', line: 'AllowUnsupportedDBVersions=1' }
+        - { regexp: '^#?PidFile=', line: 'PidFile=/run/zabbix/zabbix_server.pid' }
+        - { regexp: '^#?LogFile=', line: 'LogFile=/var/log/zabbix/zabbix_server.log' }
+
+    - name: Crear directorio web de Zabbix
+      file:
+        path: /etc/zabbix/web
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"
+
+    - name: Crear configuracion web de Zabbix
+      copy:
+        dest: /etc/zabbix/web/zabbix.conf.php
+        owner: www-data
+        group: www-data
+        mode: "0640"
+        content: |
+          <?php
+          $DB['TYPE']     = 'MYSQL';
+          $DB['SERVER']   = 'localhost';
+          $DB['PORT']     = '0';
+          $DB['DATABASE'] = 'zabbix';
+          $DB['USER']     = 'zabbix';
+          $DB['PASSWORD'] = 'zabbix';
+
+          $DB['SCHEMA'] = '';
+          $DB['ENCRYPTION'] = false;
+          $DB['KEY_FILE'] = '';
+          $DB['CERT_FILE'] = '';
+          $DB['CA_FILE'] = '';
+          $DB['VERIFY_HOST'] = false;
+          $DB['CIPHER_LIST'] = '';
+
+          $ZBX_SERVER      = 'localhost';
+          $ZBX_SERVER_PORT = '10051';
+          $ZBX_SERVER_NAME = '{{ zabbix_server_name }}';
+
+          $IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;
+
+    - name: Copiar configuracion web a ruta alternativa de Zabbix
+      copy:
+        src: /etc/zabbix/web/zabbix.conf.php
+        dest: /etc/zabbix/zabbix.conf.php
+        remote_src: yes
+        owner: www-data
+        group: www-data
+        mode: "0640"
+
+    - name: Configurar zabbix-agent local en backend1
+      lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^Server=', line: 'Server=127.0.0.1,10.10.10.20' }
+        - { regexp: '^ServerActive=', line: 'ServerActive=127.0.0.1,10.10.10.20' }
+        - { regexp: '^Hostname=', line: 'Hostname=Zabbix server' }
+        - { regexp: '^#?ListenPort=', line: 'ListenPort=10050' }
+
+    - name: Abrir puertos de Zabbix y Apache
+      shell: |
+        ufw allow 80/tcp || true
+        ufw allow 443/tcp || true
+        ufw allow 10051/tcp || true
+        ufw allow 10050/tcp || true
+        ufw reload || true
+      ignore_errors: yes
+
+    - name: Preparar directorios runtime/log de Zabbix
+      shell: |
+        install -d -m 0755 -o zabbix -g zabbix /run/zabbix
+        install -d -m 0755 -o zabbix -g zabbix /var/log/zabbix
+
+    - name: Crear configuracion Apache para Zabbix
+      copy:
+        dest: /etc/apache2/conf-available/zabbix.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          Alias /zabbix /usr/share/zabbix
+
+          <Directory /usr/share/zabbix>
+              Options FollowSymLinks
+              AllowOverride None
+              Require all granted
+          </Directory>
+
+    - name: Activar configuracion Apache de Zabbix
+      command: a2enconf zabbix
+      register: zabbix_apache_conf
+      changed_when: "'Enabling conf zabbix' in zabbix_apache_conf.stdout"
+      failed_when: false
+
+    - name: Configurar parametros PHP para Zabbix
+      lineinfile:
+        path: /etc/php/7.4/apache2/php.ini
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^post_max_size =', line: 'post_max_size = 16M' }
+        - { regexp: '^max_execution_time =', line: 'max_execution_time = 300' }
+        - { regexp: '^max_input_time =', line: 'max_input_time = 300' }
+        - { regexp: '^;?date.timezone =', line: 'date.timezone = Europe/Madrid' }
+
+    - name: Instalar y generar locale en_US.UTF-8 para Zabbix
+      shell: |
+        locale-gen en_US.UTF-8
+        update-locale LANG=en_US.UTF-8
+      changed_when: false
+
+    - name: Reiniciar servicios Zabbix y Apache
+      service:
+        name: "{{ item }}"
+        state: restarted
+        enabled: yes
+      loop:
+        - zabbix-server
+        - zabbix-agent
+        - apache2
+
+    - name: Comprobar servicios
+      shell: |
+        systemctl is-active zabbix-server
+        systemctl is-active zabbix-agent
+        systemctl is-active apache2
+        curl -I http://localhost/zabbix
+      changed_when: false

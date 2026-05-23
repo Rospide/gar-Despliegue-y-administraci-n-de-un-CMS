@@ -1,0 +1,97 @@
+---
+- name: Instalar y configurar Zabbix Agent en nodos monitorizados
+  hosts: zabbix_agent_nodes
+  become: yes
+
+  vars:
+    zabbix_server_ip: "10.10.10.20"
+
+  tasks:
+    - name: Limpiar cache antigua de apt-cacher-ng en jumpstart
+      shell: |
+        systemctl stop apt-cacher-ng || true
+        rm -rf /var/cache/apt-cacher-ng/*
+        systemctl start apt-cacher-ng || true
+      delegate_to: localhost
+      become: yes
+      run_once: true
+
+    - name: Configurar proxy APT hacia jumpstart en backend2
+      copy:
+        dest: /etc/apt/apt.conf.d/01proxy
+        content: |
+          Acquire::http::Proxy "http://10.10.10.10:3142";
+          Acquire::https::Proxy "false";
+      when: inventory_hostname == "backend2"
+
+    - name: Reactivar repositorios normales en backend2
+      shell: |
+        sed -i 's/^#deb /deb /g' /etc/apt/sources.list || true
+        sed -i 's/^#deb-src /deb-src /g' /etc/apt/sources.list || true
+        rm -f /etc/apt/sources.list.d/mariadb-local.list || true
+      when: inventory_hostname == "backend2"
+
+    - name: Limpiar cache APT en backend2
+      shell: |
+        apt clean
+        rm -rf /var/lib/apt/lists/*
+        rm -rf /var/cache/apt/archives/partial/*
+      when: inventory_hostname == "backend2"
+
+    - name: Actualizar cache APT
+      shell: |
+        apt update
+      register: apt_update_result
+      retries: 3
+      delay: 5
+      until: apt_update_result.rc == 0
+
+    - name: Instalar Zabbix Agent
+      apt:
+        name: zabbix-agent
+        state: present
+
+    - name: Configurar Server
+      lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: '^Server='
+        line: "Server={{ zabbix_server_ip }}"
+
+    - name: Configurar ServerActive
+      lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: '^ServerActive='
+        line: "ServerActive={{ zabbix_server_ip }}"
+
+    - name: Configurar Hostname
+      lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: '^Hostname='
+        line: "Hostname={{ inventory_hostname }}"
+
+    - name: Configurar ListenPort
+      lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: '^#?ListenPort='
+        line: "ListenPort=10050"
+
+    - name: Permitir Zabbix Agent en firewall
+      shell: |
+        ufw allow from {{ zabbix_server_ip }} to any port 10050 proto tcp || true
+        ufw reload || true
+      ignore_errors: yes
+
+    - name: Reiniciar y habilitar Zabbix Agent
+      service:
+        name: zabbix-agent
+        state: restarted
+        enabled: yes
+
+    - name: Comprobar estado del agente
+      shell: systemctl is-active zabbix-agent
+      register: agent_status
+      changed_when: false
+
+    - name: Mostrar resultado
+      debug:
+        msg: "{{ inventory_hostname }} -> zabbix-agent {{ agent_status.stdout }}"
