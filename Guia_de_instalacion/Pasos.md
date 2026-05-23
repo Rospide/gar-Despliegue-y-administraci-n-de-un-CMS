@@ -1,43 +1,43 @@
 
 
 ## 1. Archivos necesarios
+Lo que tenemos
+- crear_todas_las_vm.sh
+- fase2_configurar_redes_remotas.sh
+- fase3_preparar_jumpstart.sh
+- fase4_desplegar_roles.sh
 
--crear_todas_las_vm.sh
--fase2_configurar_redes_remotas.sh
--fase3_preparar_jumpstart.sh
--fase4_desplegar_roles.sh
+- crear_jumpstart.sh
+- crear_balanceador.sh
+- crear_frontend1.sh
+- crear_frontend2.sh
+- crear_backend1.sh
+- crear_backend2.sh
+- crear_router_linux.sh
 
--crear_jumpstart.sh
--crear_balanceador.sh
--crear_frontend1.sh
--crear_frontend2.sh
--crear_backend1.sh
--crear_backend2.sh
--crear_router_linux.sh
+- configurar_jumpstart.sh
+- configurar_balanceador.sh
+- configurar_frontend.sh
+- configurar_backend_red.sh
+- configurar_router_linux.sh
 
--configurar_jumpstart.sh
--configurar_balanceador.sh
--configurar_frontend.sh
--configurar_backend_red.sh
--configurar_router_linux.sh
+- configurar_backend1_local.sh
+- configurar_backend2_local.sh
 
--configurar_backend1_local.sh
--configurar_backend2_local.sh
+- backend.yml
+- frontend_wordpress.yml
+- zabbix_server_backend1.yml
+- zabbix_agents.yml
+- preparar_jumpstart.yml
+- configurar_apt_proxy_backends.yml
+- limpiar_bloqueos_apt.yml
+- hosts.ini
 
--backend.yml
--frontend_wordpress.yml
--zabbix_server_backend1.yml
--zabbix_agents.yml
--preparar_jumpstart.yml
--configurar_apt_proxy_backends.yml
--limpiar_bloqueos_apt.yml
--hosts.ini
-
--preparar_ansible.sh
--desplegar_galera.sh
--probar_balanceador.sh
--comprobar_despliegue_final.sh
--reset_fase4.sh
+- preparar_ansible.sh
+- desplegar_galera.sh
+- probar_balanceador.sh
+- comprobar_despliegue_final.sh
+- reset_fase4.sh
 
 
 En la carpeta que los tengais darle los permisos
@@ -57,23 +57,23 @@ chmod +x *.sh
 Lo que hace este script:
 Este script crea:
 
--jumpstart
--balanceador
--frontend1
--frontend2
--backend1
--backend2
--Router-Linux
+- jumpstart
+- balanceador
+- frontend1
+- frontend2
+- backend1
+- backend2
+- Router-Linux
 
 Memoria RAM configurada:
 
--jumpstart      2048 MB
--balanceador    1024 MB
--frontend1      1024 MB
--frontend2      1024 MB
--backend1       1024 MB
--backend2       1024 MB
--Router-Linux   1024 MB
+- jumpstart      2048 MB
+- balanceador    1024 MB
+- frontend1      1024 MB
+- frontend2      1024 MB
+- backend1       1024 MB
+- backend2       1024 MB
+- Router-Linux   1024 MB
 
 Importante: hay que dejar que el script termine completamente antes de continuar.
 
