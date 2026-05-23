@@ -103,7 +103,7 @@ Dentro de la terminal de backend1:(es decir entrando a virtualbox de backend1)
 sudo mkdir -p /mnt/compartida
 sudo mount -t vboxsf CompartidaVM /mnt/compartida
 bash /mnt/compartida/configurar_backend1_local.sh
-``
+``` 
 
 Dentro de la terminal de backend2:(es decir entrando a virtualbox de backend2)
 ```bash
