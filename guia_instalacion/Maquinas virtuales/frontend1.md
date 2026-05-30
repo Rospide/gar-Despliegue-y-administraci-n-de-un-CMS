@@ -5,9 +5,9 @@ Lo primero que debeis de hacer es cada uno en su PC tener creado una carpeta don
 
 ## 1. Archivos necesacios
 
-crear_frontend1.sh -> que se encuentra para descargar en automatizacion/VirtualBpx/creacion_vm
+crear_frontend1.sh -> que se encuentra para descargar en automatizacion/creacion_vm
 
-configurar_frontend.sh -> que se encuentra en automatizacion/VirtualBox/scripts
+configurar_frontend.sh -> que se encuentra en automatizacion/scripts
 
 ## 2. Proceso de arranque
 

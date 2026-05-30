@@ -14,5 +14,3 @@ Interfaces habituales en VirtualBox:
 - `enp0s3`: NAT
 - `enp0s8`: red interna `main`
 - `enp0s9`: red interna `internal`
-
-No mezclar esta carpeta con `automatizacion/PcCarlota`, porque esa está pensada para UTM.

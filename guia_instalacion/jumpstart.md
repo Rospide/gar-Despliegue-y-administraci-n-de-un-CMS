@@ -48,14 +48,14 @@ debe aparecer:
 La configuración dentro de Ubuntu se hace con el script del repositorio:
 
 ```bash
-automatizacion/VirtualBox/scripts/configurar_jumpstart.sh
+automatizacion/scripts/configurar_jumpstart.sh
 ```
 
 Ejecutar:
 
 ```bash
-chmod +x automatizacion/VirtualBox/scripts/configurar_jumpstart.sh
-sudo ./automatizacion/VirtualBox/scripts/configurar_jumpstart.sh jumpstart
+chmod +x automatizacion/scripts/configurar_jumpstart.sh
+sudo ./automatizacion/scripts/configurar_jumpstart.sh jumpstart
 ```
 
 El script configura normalmente:
@@ -298,7 +298,7 @@ Si aparece eso, significa que Ansible funciona correctamente en toda la infraest
 La instalación de Apache, PHP y WordPress en los frontends se hace desde `jumpstart` con el playbook del repositorio:
 
 ```bash
-automatizacion/VirtualBox/playbooks/frontend_wordpress.yml
+automatizacion/playbooks/frontend_wordpress.yml
 ```
 
 Antes de ejecutarlo, conviene comprobar que `jumpstart` llega a los frontends.
@@ -308,13 +308,13 @@ Se puede usar el inventario de la automatizacion de VirtualBox:
 Comprobación:
 
 ```bash
-ansible 'frontends:frontend' -i automatizacion/VirtualBox/hosts.ini -m ping
+ansible 'frontends:frontend' -i automatizacion/hosts.ini -m ping
 ```
 
 Ejecutar el despliegue:
 
 ```bash
-ansible-playbook -i automatizacion/VirtualBox/hosts.ini automatizacion/VirtualBox/playbooks/frontend_wordpress.yml --ask-become-pass
+ansible-playbook -i automatizacion/hosts.ini automatizacion/playbooks/frontend_wordpress.yml --ask-become-pass
 ```
 
 El playbook realiza automáticamente estas tareas en `frontend1` y `frontend2`:

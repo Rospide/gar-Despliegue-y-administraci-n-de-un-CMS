@@ -15,5 +15,3 @@ Usa estas guías si estás siguiendo la instalación con VirtualBox:
 - `instalacion_baseDatos.md`
 
 Estas guías usan conceptos propios de VirtualBox, como `NAT`, `Red interna` y la redirección de puertos desde la configuración de VirtualBox.
-
-No mezclar estas guías con las de la carpeta `PcCarlota`, porque esas están adaptadas para UTM.

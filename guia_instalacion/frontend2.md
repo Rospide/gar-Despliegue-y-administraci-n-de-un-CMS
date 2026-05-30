@@ -52,14 +52,14 @@ Deben aparecer normalmente:
 La configuración dentro de Ubuntu no se hace a mano, sino con el script del repositorio:
 
 ```bash
-automatizacion/VirtualBox/scripts/configurar_frontend.sh
+automatizacion/scripts/configurar_frontend.sh
 ```
 
 Ejecutar:
 
 ```bash
-chmod +x automatizacion/VirtualBox/scripts/configurar_frontend.sh
-sudo ./automatizacion/VirtualBox/scripts/configurar_frontend.sh frontend2 10.0.0.11
+chmod +x automatizacion/scripts/configurar_frontend.sh
+sudo ./automatizacion/scripts/configurar_frontend.sh frontend2 10.0.0.11
 ```
 
 El script hace automáticamente:
@@ -147,7 +147,7 @@ ssh-copy-id TU_USUARIO@10.0.0.11
 En el inventario de VirtualBox hay que cambiar `TU_USUARIO` por el usuario real de las máquinas:
 
 ```bash
-automatizacion/VirtualBox/hosts.ini
+automatizacion/hosts.ini
 ```
 
 ## 9. Despliegue del software
@@ -166,19 +166,19 @@ Una vez que:
 el despliegue se realiza de forma automatizada con el playbook:
 
 ```bash
-automatizacion/VirtualBox/playbooks/frontend_wordpress.yml
+automatizacion/playbooks/frontend_wordpress.yml
 ```
 
 Desde `jumpstart`, en la carpeta del repositorio, ejecutar:
 
 ```bash
-ansible-playbook -i automatizacion/VirtualBox/hosts.ini automatizacion/VirtualBox/playbooks/frontend_wordpress.yml -K
+ansible-playbook -i automatizacion/hosts.ini automatizacion/playbooks/frontend_wordpress.yml -K
 ```
 
 Si todavía no hay claves SSH copiadas:
 
 ```bash
-ansible-playbook -i automatizacion/VirtualBox/hosts.ini automatizacion/VirtualBox/playbooks/frontend_wordpress.yml -k -K
+ansible-playbook -i automatizacion/hosts.ini automatizacion/playbooks/frontend_wordpress.yml -k -K
 ```
 
 Este playbook:
