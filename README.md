@@ -15,8 +15,8 @@ La infraestructura incluye:
 
 - `Guia_de_instalacion/Instalacion/`: guía resumida de despliegue final y scripts principales por fases.
 - `Guia_de_instalacion/Scripts/`: scripts y playbooks preparados para copiar o ejecutar durante la instalación.
+- `Guia_de_instalacion/creacion_manual/`: guías manuales de creación y configuración por máquina o servicio.
 - `automatizacion/`: inventario, scripts, plantillas y playbooks de Ansible usados por la automatización.
-- `guia_instalacion/`: guías detalladas de instalación y configuración por máquina o servicio.
 - `docs/`: documentación de entrega, arquitectura, datos de entrada, administración y software baseline.
 - `inventario/`: inventario base del laboratorio.
 
