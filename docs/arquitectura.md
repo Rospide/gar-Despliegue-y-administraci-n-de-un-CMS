@@ -62,8 +62,9 @@ flowchart LR
     FE2 --> BE1
     BE1 <--> BE2
     RMain <--> RInternal
-    FE1 -. ruta a 10.10.10.0/24 .-> RMain
-    FE2 -. ruta a 10.10.10.0/24 .-> RMain
-    BE1 -. ruta a 10.0.0.0/24 .-> RInternal
-    BE2 -. ruta a 10.0.0.0/24 .-> RInternal
-```
+    
+    %% Aquí estaba el error, ahora el texto tiene comillas obligatorias:
+    FE1 -. "ruta a 10.10.10.0/24" .-> RMain
+    FE2 -. "ruta a 10.10.10.0/24" .-> RMain
+    BE1 -. "ruta a 10.0.0.0/24" .-> RInternal
+    BE2 -. "ruta a 10.0.0.0/24" .-> RInternal
