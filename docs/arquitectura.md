@@ -63,8 +63,13 @@ flowchart LR
     BE1 <--> BE2
     RMain <--> RInternal
     
-    %% Aquí estaba el error, ahora el texto tiene comillas obligatorias:
     FE1 -. "ruta a 10.10.10.0/24" .-> RMain
     FE2 -. "ruta a 10.10.10.0/24" .-> RMain
     BE1 -. "ruta a 10.0.0.0/24" .-> RInternal
     BE2 -. "ruta a 10.0.0.0/24" .-> RInternal
+```
+
+## Diagrama de red en Packet Tracer
+
+<img width="1487" height="475" alt="image" src="https://github.com/user-attachments/assets/2b04efa8-7e86-461d-9e24-c1e413894d50" />
+
