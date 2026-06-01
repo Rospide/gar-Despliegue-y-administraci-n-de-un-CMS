@@ -14,29 +14,29 @@ Incluye la creación y configuración de máquinas virtuales, el despliegue de s
 
 <div align="center">
 
-  <a href="#participantes">
+  <a href="#1-participantes">
     <img src="https://img.shields.io/badge/Participantes-01-blue?style=for-the-badge" alt="Participantes">
   </a>
 
-  <a href="#descripción-de-la-infraestructura">
+  <a href="#2-descripción-de-la-infraestructura">
     <img src="https://img.shields.io/badge/Descripci%C3%B3n%20de%20la%20infraestructura-02-green?style=for-the-badge" alt="Descripción de la infraestructura">
   </a>
 
-  <a href="#estructura-del-repositorio">
+  <a href="#3-estructura-del-repositorio">
     <img src="https://img.shields.io/badge/Estructura%20del%20repositorio-03-orange?style=for-the-badge" alt="Estructura del repositorio">
   </a>
 
   <br>
 
-  <a href="#documentación-de-entrega">
+  <a href="#4-documentación-de-entrega">
     <img src="https://img.shields.io/badge/Documentaci%C3%B3n%20de%20entrega-04-red?style=for-the-badge" alt="Documentación de entrega">
   </a>
 
-  <a href="#flujo-general-de-despliegue">
+  <a href="#5-flujo-general-de-despliegue">
     <img src="https://img.shields.io/badge/Flujo%20general%20de%20despliegue-05-purple?style=for-the-badge" alt="Flujo general de despliegue">
   </a>
 
-  <a href="#tecnologías-utilizadas">
+  <a href="#6-tecnologías-utilizadas">
     <img src="https://img.shields.io/badge/Tecnolog%C3%ADas%20utilizadas-06-lightgrey?style=for-the-badge" alt="Tecnologías utilizadas">
   </a>
 
