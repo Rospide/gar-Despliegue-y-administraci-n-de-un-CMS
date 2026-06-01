@@ -10,7 +10,7 @@ Este proyecto documenta y automatiza el despliegue de una infraestructura comple
 
 Incluye la creación y configuración de máquinas virtuales, el despliegue de servicios web y de base de datos, la configuración de un balanceador de carga, la monitorización del entorno y la automatización de tareas mediante scripts y playbooks de Ansible.
 
----
+# índice
 
 <div align="center">
 
@@ -41,7 +41,9 @@ Incluye la creación y configuración de máquinas virtuales, el despliegue de s
   </a>
 
 </div>
-   
+
+---
+
 ## 1. Participantes
 
 | Nº | Nombre |
