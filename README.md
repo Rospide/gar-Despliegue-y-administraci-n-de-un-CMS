@@ -1,58 +1,110 @@
+<div align="center">
+  <img src="https://capman.es/sites/default/files/styles/large/public/images/centers/logos/logo_uclm_0.png?itok=vPHw4UqY" alt="Logo de la UCLM" width="350">
+</div>
+
+---
+
 # Despliegue y administración de un CMS
 
 Este proyecto documenta y automatiza el despliegue de una infraestructura completa para alojar un CMS WordPress en alta disponibilidad dentro de un entorno de laboratorio con VirtualBox.
 
-La infraestructura incluye:
+Incluye la creación y configuración de máquinas virtuales, el despliegue de servicios web y de base de datos, la configuración de un balanceador de carga, la monitorización del entorno y la automatización de tareas mediante scripts y playbooks de Ansible.
 
-- Un nodo `jumpstart` usado como máquina de administración y punto desde el que se ejecutan los despliegues.
-- Dos frontales web, `frontend1` y `frontend2`, que sirven WordPress.
-- Un balanceador con Nginx para repartir el tráfico entre los frontales.
-- Dos nodos backend con MariaDB Galera para la base de datos replicada.
-- Monitorización con Zabbix Server y agentes en las máquinas del entorno.
-- Scripts y playbooks de Ansible para reducir la configuración manual y facilitar la repetición del despliegue.
+---
+
+<div align="center">
+
+  <a href="#participantes">
+    <img src="https://img.shields.io/static/v1?label=&message=Participantes&color=0d6efd&style=for-the-badge" alt="Participantes">
+  </a>
+
+  <a href="#descripción-de-la-infraestructura">
+    <img src="https://img.shields.io/static/v1?label=&message=Descripci%C3%B3n%20de%20la%20infraestructura&color=0d6efd&style=for-the-badge" alt="Descripción de la infraestructura">
+  </a>
+
+  <a href="#estructura-del-repositorio">
+    <img src="https://img.shields.io/static/v1?label=&message=Estructura%20del%20repositorio&color=0d6efd&style=for-the-badge" alt="Estructura del repositorio">
+  </a>
+
+  <br>
+
+  <a href="#documentación-de-entrega">
+    <img src="https://img.shields.io/static/v1?label=&message=Documentaci%C3%B3n%20de%20entrega&color=0d6efd&style=for-the-badge" alt="Documentación de entrega">
+  </a>
+
+  <a href="#flujo-general-de-despliegue">
+    <img src="https://img.shields.io/static/v1?label=&message=Flujo%20general%20de%20despliegue&color=0d6efd&style=for-the-badge" alt="Flujo general de despliegue">
+  </a>
+
+  <a href="#tecnologías-utilizadas">
+    <img src="https://img.shields.io/static/v1?label=&message=Tecnolog%C3%ADas%20utilizadas&color=0d6efd&style=for-the-badge" alt="Tecnologías utilizadas">
+  </a>
+
+</div>
+   
+## Participantes
+
+| Nº | Nombre |
+|---:|---|
+| 1 | Sandra Rodriguez Sánchez-Gil |
+| 2 | Alonso Antonio Zamora Zamora |
+| 3 | Steven Tipantuña Aquieta |
+| 4 | Alejandro Rospide Álvarez |
+| 5 | Carlota Moreno Tirado |
+
+## Descripción de la infraestructura
+
+La infraestructura desplegada está formada por los siguientes nodos y servicios:
+
+| Elemento | Descripción |
+|---|---|
+| `jumpstart` | Máquina de administración desde la que se ejecutan los despliegues y tareas de configuración. |
+| `frontend1` y `frontend2` | Servidores web encargados de alojar WordPress. |
+| `Balanceador` | Nodo con Nginx encargado de repartir el tráfico entre los servidores frontales. |
+| `backend1` y `backend2` | Nodos de base de datos configurados con MariaDB Galera para proporcionar replicación. |
+| `Zabbix` | Sistema de monitorización del entorno, compuesto por servidor y agentes. |
+| `Ansible` | Herramienta utilizada para automatizar la configuración y el despliegue de servicios. |
 
 ## Estructura del repositorio
 
-- `Guia_de_instalacion/Instalacion/`: guía resumida de despliegue final y scripts principales por fases.
-- `Guia_de_instalacion/Scripts/`: scripts y playbooks preparados para copiar o ejecutar durante la instalación.
-- `Guia_de_instalacion/creacion_manual/`: guías manuales de creación y configuración por máquina o servicio.
-- `automatizacion/`: inventario, scripts, plantillas y playbooks de Ansible usados por la automatización.
-- `docs/`: documentación de entrega, arquitectura, datos de entrada, administración y software baseline.
-- `inventario/`: inventario base del laboratorio.
+| Ruta | Contenido |
+|---|---|
+| [`Guia_de_instalacion/Instalacion/`](Guia_de_instalacion/Instalacion/) | Guía resumida del despliegue final y scripts principales organizados por fases. |
+| [`Guia_de_instalacion/Scripts/`](Guia_de_instalacion/Scripts/) | Scripts y playbooks preparados para copiar o ejecutar durante la instalación. |
+| [`Guia_de_instalacion/creacion_manual/`](Guia_de_instalacion/creacion_manual/) | Guías manuales de creación y configuración por máquina o servicio. |
+| [`automatizacion/`](automatizacion/) | Inventario, scripts, plantillas y playbooks de Ansible utilizados en la automatización. |
+| [`docs/`](docs/) | Documentación de entrega, arquitectura, datos de entrada, administración y software base. |
+| [`inventario/`](inventario/) | Inventario base del laboratorio. |
 
 ## Documentación de entrega
 
-- `docs/datos_entrada.md`: prefijos de red, IPs, puertos NAT, MACs, credenciales y variables necesarias para configurar el despliegue.
-- `docs/arquitectura.md`: diagrama de conexiones, redes y rutas de los nodos.
-- `docs/manual_administracion.md`: pasos de despliegue, monitorización, ampliación de hot-desk, sustitución/ampliación de frontales y nodos de base de datos.
-- `docs/software_baseline.md`: lista del software utilizado, versiones objetivo, origen y comandos para registrar versiones reales.
+| Documento | Descripción |
+|---|---|
+| [`docs/datos_entrada.md`](docs/datos_entrada.md) | Prefijos de red, direcciones IP, puertos NAT, direcciones MAC, credenciales y variables necesarias para configurar el despliegue. |
+| [`docs/arquitectura.md`](docs/arquitectura.md) | Diagrama de conexiones, redes y rutas de los nodos. |
+| [`docs/manual_administracion.md`](docs/manual_administracion.md) | Pasos de despliegue, monitorización, ampliación de hot-desk, sustitución o ampliación de frontales y nodos de base de datos. |
+| [`docs/software_baseline.md`](docs/software_baseline.md) | Software utilizado, versiones objetivo, origen y comandos para registrar las versiones reales. |
 
 ## Flujo general de despliegue
 
-1. Crear las máquinas virtuales desde una VM base.
-2. Configurar las interfaces de red, hostnames y accesos SSH.
-3. Preparar `jumpstart` con las herramientas necesarias para administrar el entorno.
-4. Desplegar MariaDB Galera en los backends.
-5. Desplegar WordPress en los frontends.
-6. Configurar el balanceador para exponer el servicio.
-7. Instalar Zabbix y comprobar el estado de los nodos.
-8. Verificar el acceso a WordPress, el balanceo y la monitorización.
+1. Crear las máquinas virtuales a partir de una máquina base.
+2. Configurar las interfaces de red, nombres de host y accesos SSH.
+3. Preparar el nodo `jumpstart` con las herramientas necesarias para administrar el entorno.
+4. Desplegar MariaDB Galera en los nodos backend.
+5. Desplegar WordPress en los nodos frontend.
+6. Configurar el balanceador con Nginx para exponer el servicio.
+7. Instalar y configurar Zabbix para monitorizar los nodos.
+8. Verificar el acceso a WordPress, el balanceo de carga y el estado de la monitorización.
 
-## Tecnologías usadas
+## Tecnologías utilizadas
 
-- VirtualBox
-- Ubuntu Server
-- Bash
-- Ansible
-- MariaDB Galera
-- WordPress
-- Nginx
-- Zabbix
-
-## Participantes
-
-- Sandra Rodriguez Sánchez-Gil
-- Alonso Antonio Zamora Zamora
-- Steven Tipantuña Aquieta
-- Alejandro Rospide Álvarez
-- Carlota Moreno Tirado
+| Tecnología | Uso principal |
+|---|---|
+| VirtualBox | Creación y gestión de máquinas virtuales. |
+| Ubuntu Server | Sistema operativo base de los nodos. |
+| Bash | Automatización mediante scripts. |
+| Ansible | Despliegue y configuración automatizada. |
+| MariaDB Galera | Base de datos replicada en alta disponibilidad. |
+| WordPress | CMS desplegado en los servidores frontales. |
+| Nginx | Balanceo de carga entre los servidores web. |
+| Zabbix | Monitorización de la infraestructura. |
