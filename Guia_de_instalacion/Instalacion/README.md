@@ -1,4 +1,4 @@
-# Instalacion
+# Instalación
 
 Esta carpeta contiene la guía resumida del despliegue final.
 
