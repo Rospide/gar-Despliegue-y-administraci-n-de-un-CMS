@@ -1,4 +1,4 @@
-# Inventario comun de Ansible
+# Inventario común de Ansible
 
 ---
 
