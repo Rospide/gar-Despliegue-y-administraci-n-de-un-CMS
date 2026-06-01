@@ -15,34 +15,34 @@ Incluye la creación y configuración de máquinas virtuales, el despliegue de s
 <div align="center">
 
   <a href="#participantes">
-    <img src="https://img.shields.io/static/v1?label=&message=Participantes&color=0d6efd&style=for-the-badge" alt="Participantes">
+    <img src="https://img.shields.io/badge/Participantes-01-blue?style=for-the-badge" alt="Participantes">
   </a>
 
   <a href="#descripción-de-la-infraestructura">
-    <img src="https://img.shields.io/static/v1?label=&message=Descripci%C3%B3n%20de%20la%20infraestructura&color=0d6efd&style=for-the-badge" alt="Descripción de la infraestructura">
+    <img src="https://img.shields.io/badge/Descripci%C3%B3n%20de%20la%20infraestructura-02-green?style=for-the-badge" alt="Descripción de la infraestructura">
   </a>
 
   <a href="#estructura-del-repositorio">
-    <img src="https://img.shields.io/static/v1?label=&message=Estructura%20del%20repositorio&color=0d6efd&style=for-the-badge" alt="Estructura del repositorio">
+    <img src="https://img.shields.io/badge/Estructura%20del%20repositorio-03-orange?style=for-the-badge" alt="Estructura del repositorio">
   </a>
 
   <br>
 
   <a href="#documentación-de-entrega">
-    <img src="https://img.shields.io/static/v1?label=&message=Documentaci%C3%B3n%20de%20entrega&color=0d6efd&style=for-the-badge" alt="Documentación de entrega">
+    <img src="https://img.shields.io/badge/Documentaci%C3%B3n%20de%20entrega-04-red?style=for-the-badge" alt="Documentación de entrega">
   </a>
 
   <a href="#flujo-general-de-despliegue">
-    <img src="https://img.shields.io/static/v1?label=&message=Flujo%20general%20de%20despliegue&color=0d6efd&style=for-the-badge" alt="Flujo general de despliegue">
+    <img src="https://img.shields.io/badge/Flujo%20general%20de%20despliegue-05-purple?style=for-the-badge" alt="Flujo general de despliegue">
   </a>
 
   <a href="#tecnologías-utilizadas">
-    <img src="https://img.shields.io/static/v1?label=&message=Tecnolog%C3%ADas%20utilizadas&color=0d6efd&style=for-the-badge" alt="Tecnologías utilizadas">
+    <img src="https://img.shields.io/badge/Tecnolog%C3%ADas%20utilizadas-06-lightgrey?style=for-the-badge" alt="Tecnologías utilizadas">
   </a>
 
 </div>
    
-## Participantes
+## 1. Participantes
 
 | Nº | Nombre |
 |---:|---|
@@ -52,7 +52,7 @@ Incluye la creación y configuración de máquinas virtuales, el despliegue de s
 | 4 | Alejandro Rospide Álvarez |
 | 5 | Carlota Moreno Tirado |
 
-## Descripción de la infraestructura
+## 2. Descripción de la infraestructura
 
 La infraestructura desplegada está formada por los siguientes nodos y servicios:
 
@@ -65,7 +65,7 @@ La infraestructura desplegada está formada por los siguientes nodos y servicios
 | `Zabbix` | Sistema de monitorización del entorno, compuesto por servidor y agentes. |
 | `Ansible` | Herramienta utilizada para automatizar la configuración y el despliegue de servicios. |
 
-## Estructura del repositorio
+## 3. Estructura del repositorio
 
 | Ruta | Contenido |
 |---|---|
@@ -76,7 +76,7 @@ La infraestructura desplegada está formada por los siguientes nodos y servicios
 | [`docs/`](docs/) | Documentación de entrega, arquitectura, datos de entrada, administración y software base. |
 | [`inventario/`](inventario/) | Inventario base del laboratorio. |
 
-## Documentación de entrega
+## 4. Documentación de entrega
 
 | Documento | Descripción |
 |---|---|
@@ -85,7 +85,7 @@ La infraestructura desplegada está formada por los siguientes nodos y servicios
 | [`docs/manual_administracion.md`](docs/manual_administracion.md) | Pasos de despliegue, monitorización, ampliación de hot-desk, sustitución o ampliación de frontales y nodos de base de datos. |
 | [`docs/software_baseline.md`](docs/software_baseline.md) | Software utilizado, versiones objetivo, origen y comandos para registrar las versiones reales. |
 
-## Flujo general de despliegue
+## 5. Flujo general de despliegue
 
 1. Crear las máquinas virtuales a partir de una máquina base.
 2. Configurar las interfaces de red, nombres de host y accesos SSH.
@@ -96,7 +96,7 @@ La infraestructura desplegada está formada por los siguientes nodos y servicios
 7. Instalar y configurar Zabbix para monitorizar los nodos.
 8. Verificar el acceso a WordPress, el balanceo de carga y el estado de la monitorización.
 
-## Tecnologías utilizadas
+## 6. Tecnologías utilizadas
 
 | Tecnología | Uso principal |
 |---|---|
