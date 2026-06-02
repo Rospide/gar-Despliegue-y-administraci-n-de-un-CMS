@@ -149,3 +149,10 @@ Credenciales:
 
 Usuario: Admin
 Contraseña: zabbix
+
+## 9 Probar el TrafficMix
+
+Desde el PC anfintrión:
+
+```bash
+./generar_trafico_externo.sh
