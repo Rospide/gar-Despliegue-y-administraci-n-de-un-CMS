@@ -51,8 +51,9 @@ Desde el PC anfitrión, entrar en la carpeta donde están los scripts:
 
 Dar permisos:
 
+```bash
 chmod +x *.sh
-
+``` 
 
 ## 3. Crear y configurar las máquinas virtuales
 
@@ -80,22 +81,19 @@ Primero hay que añadir una carpeta compartida a backend1 y backend2.
 
 En VirtualBox:
 
-Configuración -> Carpetas compartidas -> Añadir carpeta
+
+**Configuración → Carpetas compartidas → Añadir carpeta**
 
 Configurar así:
 
-Nombre de carpeta: CompartidaVM
-Ruta de carpeta: carpeta donde están los scripts
-Sólo lectura: desactivado
-Automontar: activado
+- **Nombre de carpeta:** `CompartidaVM`
+- **Ruta de carpeta:** carpeta donde están los scripts
+- **Sólo lectura:** desactivado
+- **Automontar:** activado
 
-El nombre debe ser exactamente:
 
-CompartidaVM
 
-con C mayúscula.
-
-Backend1
+#### Backend1
 
 Entrar en la consola de backend1 y ejecutar:
 ```bash
@@ -105,7 +103,7 @@ ls /mnt/compartida
 bash /mnt/compartida/01_crear_y_configurar_vms.sh --backend1-local
 ``` 
 
-Backend2
+##### Backend2
 
 Entrar en la consola de backend2 y ejecutar:
 ```bash
@@ -141,14 +139,15 @@ Cuando termine el despliegue, ejecutar desde jumpstart:
 
 ## 8 Entrar en Zabbix
 
-Desde el navegador del PC anfitrión:
+Desde el navegador del PC anfitrión, acceder a:
 
-http://192.168.56.20/zabbix
+`http://192.168.56.20/zabbix`
 
 Credenciales:
 
-Usuario: Admin
-Contraseña: zabbix
+**Usuario:** Admin
+
+**Contraseña:** zabbix
 
 ## 9 Probar el TrafficMix
 
