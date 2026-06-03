@@ -17,31 +17,31 @@ reset_fase4.sh
 ``` 
 Estos scripts automatizan:
 
-01_crear_y_configurar_vms.sh
+#### 01_crear_y_configurar_vms.sh
 - Crea las máquinas virtuales desde una VM base.
 - Configura RAM.
 - Configura redes de balanceador, frontend1, frontend2 y router-linux.
 - Permite configurar backend1 y backend2 desde VirtualBox.
 
-02_preparar_jumpstart.sh
+#### 02_preparar_jumpstart.sh
 - Configura jumpstart.
 - Crea hosts.ini.
 - Prepara claves SSH.
 - Instala herramientas necesarias.
 
-03_desplegar_todo.sh
+#### 03_desplegar_todo.sh
 - Despliega MariaDB Galera.
 - Despliega WordPress.
 - Despliega Zabbix Server.
 - Despliega agentes Zabbix.
 
-04_comprobar_despliegue.sh
+#### 04_comprobar_despliegue.sh
 - Comprueba Galera.
 - Comprueba WordPress.
 - Comprueba balanceador.
 - Comprueba balanceo entre frontend1 y frontend2.
 
-reset_fase4.sh
+#### reset_fase4.sh
 - Limpia errores parciales de la fase de despliegue.
 
 
@@ -64,13 +64,13 @@ Ejecutar desde el PC anfitrión:
 
 Este script crea y configura estas VMs:
 
-jumpstart
-balanceador
-frontend1
-frontend2
-backend1
-backend2
-Router-Linux
+- jumpstart
+- balanceador
+- frontend1
+- frontend2
+- backend1
+- backend2
+- Router-Linux
 
 
 ## 4. Configurar backend1 y backend2 desde VirtualBox
